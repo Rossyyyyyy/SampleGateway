@@ -7,6 +7,7 @@ import { ConfigModule } from './config';
 
 // Infrastructure
 import { DatabaseModule } from './infrastructure/database';
+import { FirebaseModule } from './infrastructure/firebase';
 import { HttpModule } from './infrastructure/http';
 import { QueueModule } from './infrastructure/queue';
 import { RedisModule } from './infrastructure/redis';
@@ -30,6 +31,7 @@ import { SecurityModule } from './security';
 
 // Domain Modules
 import { AuthModule } from './modules/auth';
+import { DepositsModule } from './modules/deposits';
 import { HealthModule } from './modules/health';
 import { TransfersModule } from './modules/transfers';
 import { WebhooksModule } from './modules/webhooks';
@@ -49,6 +51,7 @@ import { WebhooksModule } from './modules/webhooks';
 
     // Infrastructure
     DatabaseModule,
+    FirebaseModule,
     RedisModule,
     HttpModule,
     QueueModule,
@@ -62,6 +65,7 @@ import { WebhooksModule } from './modules/webhooks';
 
     // Domain Modules
     AuthModule,
+    DepositsModule,
     HealthModule,
     TransfersModule,
     WebhooksModule,

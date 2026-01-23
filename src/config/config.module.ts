@@ -3,6 +3,7 @@ import { ConfigModule as NestConfigModule } from '@nestjs/config';
 
 import { appConfig } from './app.config';
 import { databaseConfig } from './database.config';
+import { firebaseConfig } from './firebase.config';
 import { redisConfig } from './redis.config';
 import { unionbankConfig } from './unionbank.config';
 import { securityConfig } from './security.config';
@@ -16,6 +17,7 @@ import { securityConfig } from './security.config';
       load: [
         appConfig,
         databaseConfig,
+        firebaseConfig,
         redisConfig,
         unionbankConfig,
         securityConfig,
