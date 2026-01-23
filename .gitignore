@@ -46,6 +46,9 @@ lerna-debug.log*
 .temp
 .tmp
 
+# Local storage test data
+/data/local-storage-test/*.json
+
 # Runtime data
 pids
 *.pid

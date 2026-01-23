@@ -3,3 +3,4 @@ export * from './firebase';
 export * from './redis';
 export * from './queue';
 export * from './http';
+export * from './local-storage';
