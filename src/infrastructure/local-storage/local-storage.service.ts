@@ -168,9 +168,7 @@ export class LocalStorageService implements OnModuleDestroy {
         this.logger.log('Loaded existing local storage');
         return data;
       } catch (error) {
-        this.logger.warn(
-          `Failed to load storage file, creating new: ${error}`,
-        );
+        this.logger.warn(`Failed to load storage file, creating new: ${error}`);
         return this.createEmptyStorage();
       }
     }
@@ -206,9 +204,7 @@ export class LocalStorageService implements OnModuleDestroy {
   private scheduleSave(): void {
     if (this.autoSaveInterval === 0) {
       // Immediate save
-      this.save().catch((err) =>
-        this.logger.error(`Auto-save failed: ${err}`),
-      );
+      this.save().catch((err) => this.logger.error(`Auto-save failed: ${err}`));
     } else if (!this.saveTimeout) {
       this.saveTimeout = setTimeout(() => {
         this.saveTimeout = null;
@@ -273,7 +269,10 @@ export class LocalCollection<T = unknown> {
   /**
    * Update a document (partial update)
    */
-  async update(id: string, updates: Partial<T>): Promise<StorageDocument<T> | null> {
+  async update(
+    id: string,
+    updates: Partial<T>,
+  ): Promise<StorageDocument<T> | null> {
     const existing = this.getDocument(id);
     if (!existing) {
       return null;
@@ -368,7 +367,9 @@ export class LocalCollection<T = unknown> {
   /**
    * Find first document matching condition
    */
-  async findFirst(where: (doc: T) => boolean): Promise<StorageDocument<T> | null> {
+  async findFirst(
+    where: (doc: T) => boolean,
+  ): Promise<StorageDocument<T> | null> {
     const results = await this.query({ where, limit: 1 });
     return results[0] || null;
   }
