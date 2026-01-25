@@ -399,6 +399,6 @@ export class LocalCollection<T = unknown> {
     if (!collection) {
       return null;
     }
-    return (collection.documents[id] as StorageDocument<T>) || null;
+    return collection.documents[id] || null;
   }
 }

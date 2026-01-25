@@ -4,6 +4,8 @@ import {
   UnionbankAccountService,
   UnionbankInstapayService,
   UnionbankPesonetService,
+  UnionbankUpayService,
+  UnionbankUpayRedirectService,
 } from './services';
 
 @Module({
@@ -13,11 +15,15 @@ import {
     UnionbankInstapayService,
     UnionbankPesonetService,
     UnionbankAccountService,
+    UnionbankUpayService,
+    UnionbankUpayRedirectService,
   ],
   exports: [
     UnionbankInstapayService,
     UnionbankPesonetService,
     UnionbankAccountService,
+    UnionbankUpayService,
+    UnionbankUpayRedirectService,
   ],
 })
 export class UnionbankModule {}
