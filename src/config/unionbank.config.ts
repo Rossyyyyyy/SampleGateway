@@ -2,12 +2,28 @@ import { registerAs } from '@nestjs/config';
 
 export interface UnionbankConfigType {
   baseUrl: string;
+  // x-ibm-client-id for API request headers
   clientId: string;
+  // x-ibm-client-secret for API request headers
   clientSecret: string;
+  // OAuth client_id for token request (form data)
+  oauthClientId: string;
+  // x-partner-id header
   partnerId: string;
-  apiKey: string;
+  // OAuth password grant credentials
+  username: string;
+  password: string;
+  // OAuth scope
   scope: string;
+  // OAuth token endpoint
   tokenEndpoint: string;
+  // UPay transactions endpoint
+  upayEndpoint: string;
+  // UPay Redirect/Encryption settings
+  upayRedirectDomain?: string; // Domain for redirect URL (e.g., "pay.unionbankph.com")
+  upayBillerUuid?: string; // Biller UUID for redirect URL
+  upayAesKey?: string; // AES-256 key for redirect encryption (32 bytes, hex or base64)
+  // Request settings
   timeout: number;
   retryAttempts: number;
   retryDelay: number;
@@ -20,11 +36,20 @@ export const unionbankConfig = registerAs(
       process.env.UNIONBANK_BASE_URL ?? 'https://api-uat.unionbankph.com',
     clientId: process.env.UNIONBANK_CLIENT_ID ?? '',
     clientSecret: process.env.UNIONBANK_CLIENT_SECRET ?? '',
+    oauthClientId: process.env.UNIONBANK_OAUTH_CLIENT_ID ?? '',
     partnerId: process.env.UNIONBANK_PARTNER_ID ?? '',
-    apiKey: process.env.UNIONBANK_API_KEY ?? '',
-    scope: process.env.UNIONBANK_SCOPE ?? 'transfers',
+    username: process.env.UNIONBANK_USERNAME ?? '',
+    password: process.env.UNIONBANK_PASSWORD ?? '',
+    scope: process.env.UNIONBANK_SCOPE ?? 'upay_payments',
     tokenEndpoint:
-      process.env.UNIONBANK_TOKEN_ENDPOINT ?? '/partners/sb/oauth2/token',
+      process.env.UNIONBANK_TOKEN_ENDPOINT ??
+      '/ubp/uat/partners/v1/oauth2/token',
+    upayEndpoint:
+      process.env.UNIONBANK_UPAY_ENDPOINT ??
+      '/ubp/external/upay/payments/v1/transactions',
+    upayRedirectDomain: process.env.UNIONBANK_UPAY_REDIRECT_DOMAIN ?? '',
+    upayBillerUuid: process.env.UNIONBANK_UPAY_BILLER_UUID ?? '',
+    upayAesKey: process.env.UNIONBANK_UPAY_AES_KEY ?? '',
     timeout: parseInt(process.env.UNIONBANK_TIMEOUT ?? '30000', 10),
     retryAttempts: parseInt(process.env.UNIONBANK_RETRY_ATTEMPTS ?? '3', 10),
     retryDelay: parseInt(process.env.UNIONBANK_RETRY_DELAY ?? '1000', 10),

@@ -58,15 +58,20 @@ export class UnionbankOAuthClient {
     this.logger.log('Refreshing UnionBank OAuth token');
 
     try {
+      // UPay uses password grant type with OAuth client ID in form body
       const response = await this.httpClient.post<OAuthTokenResponse>(
         this.config.tokenEndpoint,
         new URLSearchParams({
-          grant_type: 'client_credentials',
+          grant_type: 'password',
+          client_id: this.config.oauthClientId,
+          username: this.config.username,
+          password: this.config.password,
           scope: this.config.scope,
         }),
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            accept: 'application/json',
             'x-ibm-client-id': this.config.clientId,
             'x-ibm-client-secret': this.config.clientSecret,
           },

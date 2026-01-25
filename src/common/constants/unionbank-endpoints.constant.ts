@@ -1,6 +1,10 @@
 export const UnionbankEndpoints = {
   // OAuth
-  TOKEN: '/partners/sb/oauth2/token',
+  TOKEN: '/ubp/uat/partners/v1/oauth2/token',
+
+  // UPay
+  UPAY_TRANSACTIONS: '/ubp/external/upay/payments/v1/transactions',
+  UPAY_STATUS: '/ubp/external/upay/payments/v1/transactions/{senderRefId}',
 
   // InstaPay
   INSTAPAY_TRANSFER: '/partners/sb/instapay/v1/transfers',

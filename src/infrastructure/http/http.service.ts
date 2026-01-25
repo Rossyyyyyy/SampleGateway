@@ -64,6 +64,11 @@ export class HttpService {
             `HTTP Response Error: ${error.response?.status ?? 'No Status'} ${error.config?.url ?? 'Unknown URL'}`,
             error.message,
           );
+          if (error.response?.data) {
+            this.logger.error(
+              `Response Data: ${JSON.stringify(error.response.data)}`,
+            );
+          }
         }
         return Promise.reject(error);
       },
