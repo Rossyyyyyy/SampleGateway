@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { randomUUID } from 'crypto';
 import {
   UnionbankApiException,
   UnionbankTimeoutException,
@@ -9,7 +10,6 @@ import { HttpService } from '../../../infrastructure/http/http.service';
 import { UnionbankConfigType } from '../../../config/unionbank.config';
 import { UnionbankRequestHeaders } from '../interfaces/unionbank-config.interface';
 import { UnionbankOAuthClient } from './unionbank-oauth.client';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface ApiRequestOptions {
   requestId?: string;
@@ -82,7 +82,7 @@ export class UnionbankApiClient {
       'x-ibm-client-id': this.config.clientId,
       'x-ibm-client-secret': this.config.clientSecret,
       'x-partner-id': this.config.partnerId,
-      'x-request-id': requestId ?? uuidv4(),
+      'x-request-id': requestId ?? randomUUID(),
     };
   }
 

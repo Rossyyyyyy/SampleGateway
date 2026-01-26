@@ -43,6 +43,27 @@ export class UnionbankUpayService {
   }
 
   /**
+   * Create a UPay transaction for debit/credit card payment
+   * This initiates a payment request that will redirect the user to UnionBank's payment page
+   * for credit/debit card processing
+   */
+  async createDebitCreditCardTransaction(
+    params: Omit<CreateUpayTransactionParams, 'paymentMethod'>,
+    requestId?: string,
+  ): Promise<UpayTransactionResponse> {
+    this.logger.log(
+      `Creating UPay debit/credit card transaction: ${params.senderRefId}`,
+    );
+
+    const requestParams: CreateUpayTransactionParams = {
+      ...params,
+      paymentMethod: 'debit/credit',
+    };
+
+    return this.createTransaction(requestParams, requestId);
+  }
+
+  /**
    * Get the status of a UPay transaction
    */
   async getTransactionStatus(

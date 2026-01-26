@@ -12,7 +12,10 @@ import {
   createUpayRedirectUrl,
   encryptUpayRedirectPayload,
 } from '../utils/upay-redirect-encryption.util';
-import { CreateUpayTransactionParams } from '../dto/request/upay-transaction.request.dto';
+import {
+  CreateUpayTransactionParams,
+  UpayPaymentMethod,
+} from '../dto/request/upay-transaction.request.dto';
 
 export interface UpayRedirectPayload extends Record<string, unknown> {
   senderRefId: string;
@@ -20,7 +23,7 @@ export interface UpayRedirectPayload extends Record<string, unknown> {
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
-  paymentMethod: 'paygate' | 'instapay' | 'pesonet';
+  paymentMethod: UpayPaymentMethod;
   skipWhitelabelPage: 'true' | 'false';
   callbackUrl: string;
   references: Array<{ index: number | string; value: string }>;

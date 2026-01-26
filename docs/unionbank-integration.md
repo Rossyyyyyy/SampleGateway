@@ -9,6 +9,11 @@ The UnionBank integration module provides:
 - **InstaPay Transfers**: Real-time fund transfers
 - **PESONet Transfers**: Batch fund transfers
 - **uPay Payments**: Payment processing via redirect or direct API
+  - **Debit/Credit Card**: Visa and Mastercard payments
+  - **UB Online**: UnionBank Online Banking payments
+  - **InstaPay**: QR code and reference number payments
+  - **PCHC PayGate**: PesoNet payments
+  - **E-Wallets**: GCash, GrabPay, and other e-wallet providers
 - **Account Inquiry**: Account validation and information retrieval
 - **OAuth Authentication**: Token management for UnionBank API
 
@@ -61,7 +66,92 @@ Handles payment processing via UnionBank's uPay service.
 **Methods**:
 
 - `createTransaction()`: Create uPay transaction (Direct API)
+- `createDebitCreditCardTransaction()`: Create debit/credit card payment transaction
 - `getTransactionStatus()`: Get transaction status
+
+#### Payment Methods
+
+The uPay service supports multiple payment methods:
+
+- **`debit/credit`**: Visa and Mastercard debit/credit card payments
+- **`ub online`**: UnionBank Online Banking payments
+- **`instapay`**: InstaPay QR code or reference number payments
+- **`instapay p2b`**: InstaPay Person-to-Business payments
+- **`paygate`**: PCHC PayGate via PesoNet payments
+- **`gcash`**: GCash e-wallet payments
+- **`grabpay`**: GrabPay e-wallet payments
+- **`bayad_center`**: Bayad Center OTC payments
+- **`cebl`**: Cebuana Lhuillier payments
+- **`ecpay`**: ECPay payments
+- **`plwn`**: Palawan Pawnshop payments
+- **`mlh`**: M Lhuillier payments
+- **`smr`**: SM Retail payments
+- **`rds`**: RD Pawnshop payments
+
+#### Debit/Credit Card Payments
+
+For debit/credit card payments, you can use the dedicated method:
+
+```typescript
+const response = await upayService.createDebitCreditCardTransaction({
+  senderRefId: 'TXN-001',
+  emailAddress: 'user@example.com',
+  mobileNumber: '9123456789',
+  amount: 1000.00,
+  callbackUrl: 'https://partner.com/callback',
+  firstName: 'John',
+  lastName: 'Doe',
+  accountNumber: '1234567890',
+  userRef: 'USER-123'
+});
+
+// Response includes redirect URL in message field
+// Redirect user to response.message for payment processing
+if (response.message) {
+  window.location.href = response.message;
+}
+```
+
+#### Generic Transaction Creation
+
+You can also use the generic method with any payment method:
+
+```typescript
+const response = await upayService.createTransaction({
+  senderRefId: 'TXN-001',
+  emailAddress: 'user@example.com',
+  mobileNumber: '9123456789',
+  amount: 1000.00,
+  paymentMethod: 'debit/credit', // or 'ub online', 'instapay', etc.
+  skipWhitelabelPage: false,
+  callbackUrl: 'https://partner.com/callback',
+  firstName: 'John',
+  lastName: 'Doe',
+  accountNumber: '1234567890'
+});
+```
+
+#### Response Structure
+
+The transaction response includes:
+
+```typescript
+interface UpayTransactionResponse {
+  code?: string;              // Response code (e.g., "SP", "200")
+  senderRefId: string;       // Your transaction reference
+  uuid: string;               // UnionBank transaction UUID
+  state?: string;             // Transaction state (e.g., "Sent for Processing")
+  transactionId?: string;     // Transaction ID for tracking
+  qrCode?: string;            // QR code string (for InstaPay)
+  message?: string;           // Redirect URL (for debit/credit, UB Online, PayGate)
+}
+```
+
+**For Debit/Credit Card Payments:**
+
+- The `message` field contains the redirect URL to UnionBank's payment page
+- Redirect the user to this URL to complete the payment
+- After payment, the user will be redirected to your `callbackUrl`
 
 ### uPay Redirect Service
 
@@ -126,7 +216,7 @@ interface UpayRedirectPayload {
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
-  paymentMethod: 'paygate' | 'instapay' | 'pesonet';
+  paymentMethod: UpayPaymentMethod; // See Payment Methods section
   skipWhitelabelPage: 'true' | 'false';
   callbackUrl: string;
   references: Array<{
@@ -134,6 +224,23 @@ interface UpayRedirectPayload {
     value: string;
   }>;
 }
+
+// Supported payment methods
+type UpayPaymentMethod =
+  | 'debit/credit'      // Visa/Mastercard
+  | 'ub online'         // UnionBank Online
+  | 'instapay'          // InstaPay
+  | 'instapay p2b'      // InstaPay P2B
+  | 'paygate'           // PCHC PayGate
+  | 'gcash'             // GCash
+  | 'grabpay'           // GrabPay
+  | 'bayad_center'      // Bayad Center
+  | 'cebl'              // Cebuana Lhuillier
+  | 'ecpay'             // ECPay
+  | 'plwn'              // Palawan Pawnshop
+  | 'mlh'               // M Lhuillier
+  | 'smr'               // SM Retail
+  | 'rds';              // RD Pawnshop
 ```
 
 ### uPay Redirect Configuration
@@ -228,6 +335,7 @@ All requests include:
 ### uPay
 
 - `POST /ubp/external/upay/payments/v1/transactions`: Create transaction
+  - Supports all payment methods: `debit/credit`, `ub online`, `instapay`, `paygate`, etc.
 - `GET /ubp/external/upay/payments/v1/transactions/{referenceId}`: Get status
 
 ### Account Inquiry
@@ -353,6 +461,7 @@ const status = await instapayService.getTransferStatus(
 ### Create uPay Redirect
 
 ```typescript
+// InstaPay redirect
 const redirectUrl = upayRedirectService.createRedirectUrl({
   senderRefId: generateReferenceId(),
   emailAddress: 'user@example.com',
@@ -365,6 +474,43 @@ const redirectUrl = upayRedirectService.createRedirectUrl({
 });
 
 // Redirect user
+window.location.href = redirectUrl;
+```
+
+### Create Debit/Credit Card Payment
+
+```typescript
+// Using Direct API (recommended for debit/credit card)
+const response = await upayService.createDebitCreditCardTransaction({
+  senderRefId: generateReferenceId(),
+  emailAddress: 'user@example.com',
+  mobileNumber: '9123456789',
+  amount: 1000.00,
+  callbackUrl: 'https://partner.com/callback',
+  firstName: 'John',
+  lastName: 'Doe',
+  accountNumber: '1234567890',
+  userRef: 'USER-123'
+});
+
+// Redirect user to payment page
+if (response.message) {
+  window.location.href = response.message;
+}
+
+// Or using redirect service
+const redirectUrl = upayRedirectService.createRedirectUrl({
+  senderRefId: generateReferenceId(),
+  emailAddress: 'user@example.com',
+  mobileNumber: '9123456789',
+  amount: 1000.00,
+  paymentMethod: 'debit/credit',
+  callbackUrl: 'https://partner.com/callback',
+  firstName: 'John',
+  lastName: 'Doe',
+  accountNumber: '1234567890'
+});
+
 window.location.href = redirectUrl;
 ```
 
