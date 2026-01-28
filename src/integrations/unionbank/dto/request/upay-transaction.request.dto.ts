@@ -3,6 +3,22 @@
  * Based on UnionBank UPay API documentation
  */
 
+export type UpayPaymentMethod =
+  | 'debit/credit'
+  | 'ub online'
+  | 'instapay'
+  | 'instapay p2b'
+  | 'paygate'
+  | 'gcash'
+  | 'grabpay'
+  | 'bayad_center'
+  | 'cebl'
+  | 'ecpay'
+  | 'plwn'
+  | 'mlh'
+  | 'smr'
+  | 'rds';
+
 export interface UpayReference {
   index: number | string;
   value: string;
@@ -14,7 +30,7 @@ export interface UpayTransactionRequest {
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
-  paymentMethod: 'paygate' | 'instapay' | 'pesonet';
+  paymentMethod: UpayPaymentMethod;
   skipWhitelabelPage: 'true' | 'false';
   callbackUrl: string;
   references: UpayReference[];
@@ -25,7 +41,7 @@ export interface CreateUpayTransactionParams {
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
-  paymentMethod?: 'paygate' | 'instapay' | 'pesonet';
+  paymentMethod?: UpayPaymentMethod;
   skipWhitelabelPage?: boolean;
   callbackUrl: string;
   // Reference fields
