@@ -160,6 +160,11 @@ interface SecurityConfigType {
 ### UnionBank Environment Variables
 
 ```env
+# Environment routing (defaults to uat)
+# - sandbox: routes under /partners/sb/...
+# - uat: routes under /ubp/uat/... (token) and /ubp/external/... (most APIs)
+UNIONBANK_ENV=uat
+
 # Base URL
 UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
 

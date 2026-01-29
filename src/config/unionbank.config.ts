@@ -1,6 +1,12 @@
 import { registerAs } from '@nestjs/config';
 
 export interface UnionbankConfigType {
+  /**
+   * Which UnionBank environment routing to use.
+   * - sandbox: routes under /partners/sb/...
+   * - uat: routes under /ubp/uat/... (token) and /ubp/external/... (most APIs)
+   */
+  env: 'sandbox' | 'uat';
   baseUrl: string;
   // x-ibm-client-id for API request headers
   clientId: string;
@@ -29,9 +35,16 @@ export interface UnionbankConfigType {
   retryDelay: number;
 }
 
+function parseUnionbankEnv(value: string | undefined): 'sandbox' | 'uat' {
+  const normalized = (value ?? '').trim().toLowerCase();
+  if (normalized === 'sandbox' || normalized === 'sb') return 'sandbox';
+  return 'uat';
+}
+
 export const unionbankConfig = registerAs(
   'unionbank',
   (): UnionbankConfigType => ({
+    env: parseUnionbankEnv(process.env.UNIONBANK_ENV),
     baseUrl:
       process.env.UNIONBANK_BASE_URL ?? 'https://api-uat.unionbankph.com',
     clientId: process.env.UNIONBANK_CLIENT_ID ?? '',
@@ -43,7 +56,9 @@ export const unionbankConfig = registerAs(
     scope: process.env.UNIONBANK_SCOPE ?? 'upay_payments',
     tokenEndpoint:
       process.env.UNIONBANK_TOKEN_ENDPOINT ??
-      '/ubp/uat/partners/v1/oauth2/token',
+      (parseUnionbankEnv(process.env.UNIONBANK_ENV) === 'sandbox'
+        ? '/partners/sb/partners/v1/oauth2/token'
+        : '/ubp/uat/partners/v1/oauth2/token'),
     upayEndpoint:
       process.env.UNIONBANK_UPAY_ENDPOINT ??
       '/ubp/external/upay/payments/v1/transactions',

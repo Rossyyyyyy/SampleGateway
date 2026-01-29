@@ -3,16 +3,28 @@
 # Test script to verify UnionBank OAuth endpoint with curl
 # This helps diagnose if the issue is IP whitelisting or credential problems
 
-# Load environment variables from .env file
+# Load environment variables from .env file (supports quoted values)
 if [ -f .env ]; then
-  export $(cat .env | grep -v '^#' | xargs)
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
 fi
+
+BASE_URL="${UNIONBANK_BASE_URL:-https://api-uat.unionbankph.com}"
+UNIONBANK_ENV="${UNIONBANK_ENV:-uat}"
+DEFAULT_TOKEN_ENDPOINT="/ubp/uat/partners/v1/oauth2/token"
+if [ "$UNIONBANK_ENV" = "sandbox" ] || [ "$UNIONBANK_ENV" = "sb" ]; then
+  DEFAULT_TOKEN_ENDPOINT="/partners/sb/partners/v1/oauth2/token"
+fi
+TOKEN_ENDPOINT="${UNIONBANK_TOKEN_ENDPOINT:-$DEFAULT_TOKEN_ENDPOINT}"
+FULL_URL="${BASE_URL}${TOKEN_ENDPOINT}"
 
 echo "=========================================="
 echo "UnionBank OAuth Token Endpoint Test"
 echo "=========================================="
 echo ""
-echo "Testing endpoint: https://api-uat.unionbankph.com/ubp/uat/partners/v1/oauth2/token"
+echo "Testing endpoint: $FULL_URL"
 echo ""
 
 # Check if required variables are set
@@ -45,7 +57,7 @@ echo "Making request..."
 echo ""
 
 # Make the curl request exactly as per UnionBank documentation
-curl -v -L -X POST 'https://api-uat.unionbankph.com/ubp/uat/partners/v1/oauth2/token' \
+curl -v -L -X POST "$FULL_URL" \
   -H 'accept: application/json' \
   -H 'content-type: application/x-www-form-urlencoded' \
   --data-urlencode "grant_type=password" \
