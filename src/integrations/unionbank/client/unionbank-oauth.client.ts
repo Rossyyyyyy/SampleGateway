@@ -67,6 +67,15 @@ export class UnionbankOAuthClient {
     );
 
     try {
+      this.logger.debug(
+        `OAuth Client ID: ${this.config.oauthClientId ? 'SET' : 'NOT SET'}`,
+      );
+      this.logger.debug(
+        `Username: ${this.config.username ? 'SET' : 'NOT SET'}`,
+      );
+      this.logger.debug(
+        `Password: ${this.config.password ? 'SET' : 'NOT SET'}`,
+      );
       // UPay uses password grant type with OAuth client ID in form body
       // Note: OAuth token endpoint does NOT require x-ibm-client-id and x-ibm-client-secret headers
       // Those headers are only used for actual API calls, not for token requests
