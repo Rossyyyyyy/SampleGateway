@@ -9,6 +9,10 @@ import {
   UpayStatusResponse,
   UpayTransactionResponse,
 } from '../dto/response/upay-transaction.response.dto';
+import {
+  UpayBillerUuidResponse,
+  UpayBillerUuidReferencesResponse,
+} from '../dto/response/upay-biller.response.dto';
 
 @Injectable()
 export class UnionbankUpayService {
@@ -82,6 +86,68 @@ export class UnionbankUpayService {
     });
 
     this.logger.log(`UPay transaction status: ${response.status}`);
+    return response;
+  }
+
+  /**
+   * Get biller details by UUID
+   * Returns biller information including payment channels, fees, and transaction limits
+   */
+  async getBillerDetails(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<UpayBillerUuidResponse> {
+    this.logger.log(`Getting biller details for UUID: ${billerUuid}`);
+
+    const endpointTemplate =
+      UnionbankEndpoints[
+        'UPAY_BILLER_DETAILS' as keyof typeof UnionbankEndpoints
+      ];
+    if (!endpointTemplate || typeof endpointTemplate !== 'string') {
+      throw new Error('UPAY_BILLER_DETAILS endpoint not found');
+    }
+
+    const endpoint = endpointTemplate.replace('{billerUuid}', billerUuid);
+
+    const response = await this.apiClient.get<UpayBillerUuidResponse>(
+      endpoint,
+      { requestId },
+    );
+
+    this.logger.log(
+      `Biller details retrieved: ${response.billers?.[0]?.billerName || 'Unknown'}`,
+    );
+    return response;
+  }
+
+  /**
+   * Get biller references by UUID
+   * Returns the list of reference fields defined for the biller with their validations
+   */
+  async getBillerReferences(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<UpayBillerUuidReferencesResponse> {
+    this.logger.log(`Getting biller references for UUID: ${billerUuid}`);
+
+    const endpointTemplate =
+      UnionbankEndpoints[
+        'UPAY_BILLER_REFERENCES' as keyof typeof UnionbankEndpoints
+      ];
+    if (!endpointTemplate || typeof endpointTemplate !== 'string') {
+      throw new Error('UPAY_BILLER_REFERENCES endpoint not found');
+    }
+
+    const endpoint = endpointTemplate.replace('{billerUuid}', billerUuid);
+
+    const response = await this.apiClient.get<UpayBillerUuidReferencesResponse>(
+      endpoint,
+      { requestId },
+    );
+
+    this.logger.log(
+      `Biller references retrieved: ${response.references?.length || 0} references`,
+    );
     return response;
   }
 }
