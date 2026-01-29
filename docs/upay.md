@@ -178,6 +178,54 @@ Retrieves reference field definitions and validations configured for the biller.
 }
 ```
 
+### Get InstaPay Banks
+
+Retrieves the list of **InstaPay receiving banks** supported by UnionBank UPay.
+
+**Endpoint**: `GET /upay/payments/v1/instapay/banks`
+
+**Response** (200):
+
+```json
+{
+  "records": [
+    {
+      "code": "161207",
+      "bank": "Sterling Bank Of Asia",
+      "brstn": "011190019"
+    }
+  ]
+}
+```
+
+Notes:
+
+- The gateway returns `records` as an array (defaults to `[]` if UnionBank returns null/undefined).
+
+### Get PESONet Banks
+
+Retrieves the list of **PESONet receiving banks** supported by UnionBank UPay.
+
+**Endpoint**: `GET /upay/payments/v1/pesonet/banks`
+
+**Response** (200):
+
+```json
+{
+  "records": [
+    {
+      "code": "161203",
+      "bank": "Bank Of China",
+      "brstn": "011140014"
+    }
+  ]
+}
+```
+
+Notes:
+
+- UnionBank’s compiled spec has an inconsistency (`record` vs `records`). The gateway DTO accepts **either** field.
+
 ## Validation Notes
 
 Request validation is enforced via Nest global validation pipe:

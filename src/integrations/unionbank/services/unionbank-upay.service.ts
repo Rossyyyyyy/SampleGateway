@@ -13,6 +13,10 @@ import {
   UpayBillerUuidResponse,
   UpayBillerUuidReferencesResponse,
 } from '../dto/response/upay-biller.response.dto';
+import type {
+  UPayInstapayBankResponse,
+  UPayPesonetBankResponse,
+} from '../dto/response/upay-bank.response.dto';
 
 @Injectable()
 export class UnionbankUpayService {
@@ -149,5 +153,31 @@ export class UnionbankUpayService {
       `Biller references retrieved: ${response.references?.length || 0} references`,
     );
     return response;
+  }
+
+  /**
+   * Get InstaPay bank list
+   * GET /upay/payments/v1/instapay/banks
+   */
+  async getInstapayBanks(
+    requestId?: string,
+  ): Promise<UPayInstapayBankResponse> {
+    this.logger.log('Getting UPay InstaPay banks');
+    return this.apiClient.get<UPayInstapayBankResponse>(
+      UnionbankEndpoints.UPAY_INSTAPAY_BANKS,
+      { requestId },
+    );
+  }
+
+  /**
+   * Get PESONet bank list
+   * GET /upay/payments/v1/pesonet/banks
+   */
+  async getPesonetBanks(requestId?: string): Promise<UPayPesonetBankResponse> {
+    this.logger.log('Getting UPay PESONet banks');
+    return this.apiClient.get<UPayPesonetBankResponse>(
+      UnionbankEndpoints.UPAY_PESONET_BANKS,
+      { requestId },
+    );
   }
 }

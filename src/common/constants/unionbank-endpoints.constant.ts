@@ -18,6 +18,8 @@ export const UnionbankEndpointsByEnv = {
     // UPay (UPay APIs are under /ubp/external even for UAT domain usage)
     UPAY_TRANSACTIONS: '/ubp/external/upay/payments/v1/transactions',
     UPAY_STATUS: '/ubp/external/upay/payments/v1/transactions/{senderRefId}',
+    UPAY_INSTAPAY_BANKS: '/ubp/external/upay/payments/v1/instapay/banks',
+    UPAY_PESONET_BANKS: '/ubp/external/upay/payments/v1/pesonet/banks',
 
     // InstaPay (Sandbox routing)
     INSTAPAY_TRANSFER: '/partners/sb/instapay/v1/transfers',
@@ -45,6 +47,8 @@ export const UnionbankEndpointsByEnv = {
     // UPay (UPay doc "API Direct Integration")
     UPAY_TRANSACTIONS: '/ubp/external/upay/payments/v1/transactions',
     UPAY_STATUS: '/ubp/external/upay/payments/v1/transactions/{senderRefId}',
+    UPAY_INSTAPAY_BANKS: '/ubp/external/upay/payments/v1/instapay/banks',
+    UPAY_PESONET_BANKS: '/ubp/external/upay/payments/v1/pesonet/banks',
 
     // These align with `docs/unionbank-integration.md` in this repo
     INSTAPAY_TRANSFER: '/ubp/external/instapay/v1/transfers',

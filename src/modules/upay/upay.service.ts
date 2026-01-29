@@ -9,6 +9,8 @@ import {
   UpayStatusResponseDto,
   UpayBillerResponseDto,
   UpayBillerReferencesResponseDto,
+  UpayInstapayBankResponseDto,
+  UpayPesonetBankResponseDto,
 } from './dto/upay.dto';
 
 @Injectable()
@@ -165,6 +167,34 @@ export class UpayService {
 
     return {
       references: response.references,
+    };
+  }
+
+  /**
+   * Get InstaPay banks
+   */
+  async getInstapayBanks(
+    requestId?: string,
+  ): Promise<UpayInstapayBankResponseDto> {
+    this.logger.log('Getting UPay InstaPay banks');
+    const response =
+      await this.unionbankUpayService.getInstapayBanks(requestId);
+    return {
+      records: response.records ?? [],
+    };
+  }
+
+  /**
+   * Get PESONet banks
+   */
+  async getPesonetBanks(
+    requestId?: string,
+  ): Promise<UpayPesonetBankResponseDto> {
+    this.logger.log('Getting UPay PESONet banks');
+    const response = await this.unionbankUpayService.getPesonetBanks(requestId);
+    return {
+      records: response.records,
+      record: response.record,
     };
   }
 }

@@ -18,6 +18,7 @@ import type {
   UpayBiller,
   UpayBillerReference,
 } from '../../../integrations/unionbank/dto/response/upay-biller.response.dto';
+import type { UPayBankRecord } from '../../../integrations/unionbank/dto/response/upay-bank.response.dto';
 
 export const UPAY_PAYMENT_METHODS = [
   'debit/credit',
@@ -317,4 +318,37 @@ export class UpayBillerResponseDto {
 export class UpayBillerReferencesResponseDto {
   @ApiProperty()
   references: UpayBillerReference[];
+}
+
+/**
+ * UPay Bank Record DTO
+ */
+export class UpayBankRecordDto implements UPayBankRecord {
+  @ApiProperty({ description: 'Bank code', example: '161207' })
+  code: string;
+
+  @ApiProperty({ description: 'Bank name', example: 'Sterling Bank Of Asia' })
+  bank: string;
+
+  @ApiProperty({ description: 'BRSTN', example: '011190019' })
+  brstn: string;
+}
+
+/**
+ * UPay InstaPay Bank List Response DTO
+ */
+export class UpayInstapayBankResponseDto {
+  @ApiProperty({ type: [UpayBankRecordDto] })
+  records: UpayBankRecordDto[];
+}
+
+/**
+ * UPay PESONet Bank List Response DTO
+ */
+export class UpayPesonetBankResponseDto {
+  @ApiPropertyOptional({ type: [UpayBankRecordDto] })
+  records?: UpayBankRecordDto[];
+
+  @ApiPropertyOptional({ type: [UpayBankRecordDto] })
+  record?: UpayBankRecordDto[];
 }

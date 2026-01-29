@@ -19,6 +19,8 @@ import {
   CreateUpayTransactionDto,
   UpayBillerReferencesResponseDto,
   UpayBillerResponseDto,
+  UpayInstapayBankResponseDto,
+  UpayPesonetBankResponseDto,
   UpayStatusResponseDto,
   UpayTransactionResponseDto,
 } from './dto/upay.dto';
@@ -132,5 +134,29 @@ export class UpayController {
     @Param('billerUuid') billerUuid: string,
   ): Promise<UpayBillerReferencesResponseDto> {
     return this.upayService.getBillerReferences(billerUuid);
+  }
+
+  @Get('payments/v1/instapay/banks')
+  @ApiOperation({ summary: 'Get InstaPay banks' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'InstaPay bank list retrieved successfully',
+    type: UpayInstapayBankResponseDto,
+  })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  async getInstapayBanks(): Promise<UpayInstapayBankResponseDto> {
+    return this.upayService.getInstapayBanks();
+  }
+
+  @Get('payments/v1/pesonet/banks')
+  @ApiOperation({ summary: 'Get PESONet banks' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'PESONet bank list retrieved successfully',
+    type: UpayPesonetBankResponseDto,
+  })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  async getPesonetBanks(): Promise<UpayPesonetBankResponseDto> {
+    return this.upayService.getPesonetBanks();
   }
 }
