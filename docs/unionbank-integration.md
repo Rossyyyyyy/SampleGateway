@@ -287,12 +287,20 @@ The gateway uses OAuth 2.0 to authenticate with UnionBank APIs.
 ### OAuth Configuration
 
 ```env
+# Environment routing (defaults to uat; also accepts "sb" as sandbox alias)
+UNIONBANK_ENV=uat|sandbox|sb
+
 UNIONBANK_OAUTH_CLIENT_ID=your-oauth-client-id
 UNIONBANK_USERNAME=your-username
 UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
+# If unset, token endpoint defaults based on UNIONBANK_ENV:
+# - uat: /ubp/uat/partners/v1/oauth2/token
+# - sandbox/sb: /partners/sb/partners/v1/oauth2/token
 UNIONBANK_TOKEN_ENDPOINT=/ubp/uat/partners/v1/oauth2/token
 ```
+
+Note: the OAuth token request is `application/x-www-form-urlencoded` and does **not** use `x-ibm-client-id` / `x-ibm-client-secret` headers (those are for actual API calls).
 
 ### Token Caching
 

@@ -160,10 +160,10 @@ interface SecurityConfigType {
 ### UnionBank Environment Variables
 
 ```env
-# Environment routing (defaults to uat)
-# - sandbox: routes under /partners/sb/...
-# - uat: routes under /ubp/uat/... (token) and /ubp/external/... (most APIs)
-UNIONBANK_ENV=uat
+# Environment routing (defaults to uat; also accepts "sb" as sandbox alias)
+# - sandbox/sb: routes under /partners/sb/...
+# - uat: token under /ubp/uat/... and most APIs under /ubp/external/...
+UNIONBANK_ENV=uat|sandbox|sb
 
 # Base URL
 UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
@@ -180,7 +180,12 @@ UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
 
 # Endpoints
+# If unset, token endpoint defaults based on UNIONBANK_ENV:
+# - uat: /ubp/uat/partners/v1/oauth2/token
+# - sandbox/sb: /partners/sb/partners/v1/oauth2/token
 UNIONBANK_TOKEN_ENDPOINT=/ubp/uat/partners/v1/oauth2/token
+#
+# UPay APIs are under /ubp/external/... (even when using the UAT base domain)
 UNIONBANK_UPAY_ENDPOINT=/ubp/external/upay/payments/v1/transactions
 
 # UPay Redirect
@@ -198,6 +203,7 @@ UNIONBANK_RETRY_DELAY=1000
 
 ```typescript
 interface UnionbankConfigType {
+  env: 'sandbox' | 'uat';
   baseUrl: string;
   clientId: string;
   clientSecret: string;
@@ -217,6 +223,17 @@ interface UnionbankConfigType {
 }
 ```
 
+### OAuth token request (UPay)
+
+The token request uses **`application/x-www-form-urlencoded`** form data with:
+
+- `grant_type=password`
+- `client_id` = `UNIONBANK_OAUTH_CLIENT_ID`
+- `username` / `password`
+- `scope`
+
+The OAuth token endpoint **does not require** `x-ibm-client-id` / `x-ibm-client-secret` headers (those are for actual API calls, not the token request).
+
 ### UPay AES Key
 
 The AES key must be 32 bytes. Generate using:
@@ -228,6 +245,10 @@ openssl rand -hex 32
 # Base64 format
 openssl rand -base64 32
 ```
+
+### Troubleshooting OAuth outside the app
+
+Use `test/test-oauth-curl.sh` to hit the configured token endpoint with curl. It loads values from `.env` and will automatically pick the default token endpoint based on `UNIONBANK_ENV` if `UNIONBANK_TOKEN_ENDPOINT` is not set.
 
 ## Firebase Configuration
 
