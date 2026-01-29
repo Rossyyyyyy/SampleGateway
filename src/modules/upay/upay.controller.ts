@@ -100,6 +100,18 @@ export class UpayController {
     return this.upayService.getTransactionStatus(senderRefId);
   }
 
+  @Get('payments/v1/privacy')
+  @ApiOperation({ summary: 'Get privacy policy' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Privacy policy retrieved successfully',
+    schema: { type: 'object' },
+  })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  async getPrivacyPolicy(): Promise<unknown> {
+    return this.upayService.getPrivacyPolicy();
+  }
+
   @Get('billers/:billerUuid')
   @ApiOperation({ summary: 'Get biller details by UUID' })
   @ApiResponse({

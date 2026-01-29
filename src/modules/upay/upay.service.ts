@@ -133,6 +133,14 @@ export class UpayService {
   }
 
   /**
+   * Get privacy policy
+   */
+  async getPrivacyPolicy(requestId?: string): Promise<unknown> {
+    this.logger.log('Getting UPay privacy policy');
+    return this.unionbankUpayService.getPrivacyPolicy(requestId);
+  }
+
+  /**
    * Get biller details by UUID
    */
   async getBillerDetails(

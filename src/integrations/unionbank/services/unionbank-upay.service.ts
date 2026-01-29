@@ -94,6 +94,17 @@ export class UnionbankUpayService {
   }
 
   /**
+   * Get privacy policy
+   * GET /upay/payments/v1/privacy
+   */
+  async getPrivacyPolicy(requestId?: string): Promise<unknown> {
+    this.logger.log('Getting UPay privacy policy');
+    return this.apiClient.get<unknown>(UnionbankEndpoints.UPAY_PRIVACY_POLICY, {
+      requestId,
+    });
+  }
+
+  /**
    * Get biller details by UUID
    * Returns biller information including payment channels, fees, and transaction limits
    */

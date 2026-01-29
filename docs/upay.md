@@ -127,6 +127,20 @@ Retrieves the status of a UPay transaction.
 }
 ```
 
+### Get Privacy Policy
+
+Retrieves UnionBank UPay’s privacy policy content.
+
+**Endpoint**: `GET /upay/payments/v1/privacy`
+
+**Headers**: `Authorization` required
+
+**Response** (200):
+
+```json
+{}
+```
+
 ### Get Biller Details
 
 Retrieves biller configuration (channels, limits, fees) by biller UUID.
