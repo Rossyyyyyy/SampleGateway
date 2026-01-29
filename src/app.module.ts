@@ -34,6 +34,7 @@ import { AuthModule } from './modules/auth';
 import { DepositsModule } from './modules/deposits';
 import { HealthModule } from './modules/health';
 import { TransfersModule } from './modules/transfers';
+import { UpayModule } from './modules/upay';
 import { WebhooksModule } from './modules/webhooks';
 
 @Module({
@@ -68,6 +69,7 @@ import { WebhooksModule } from './modules/webhooks';
     DepositsModule,
     HealthModule,
     TransfersModule,
+    UpayModule,
     WebhooksModule,
   ],
   providers: [

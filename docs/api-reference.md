@@ -486,4 +486,8 @@ Version is configured via `API_VERSION` environment variable.
 
 ## Changelog
 
+## UPay Endpoints
+
+See [UPay](upay.md) for full details and examples.
+
 API changes and deprecations will be documented in the changelog.
