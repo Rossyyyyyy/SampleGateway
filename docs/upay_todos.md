@@ -12,14 +12,14 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 - [X] **`billerUuid` required in API requests** (per YAML docs around line ~35734)
   - **Where**: `src/modules/upay/dto/upay.dto.ts` (likely `CreateUpayTransactionDto`)
   - **Also impacts**: `src/integrations/unionbank/dto/request/*` payload mapping
-- [ ] **`countryCode` optional for international numbers** (per PDF lines 149–154)
+- [X] **`countryCode` optional for international numbers** (per PDF lines 149–154)
   - **Where**: `CreateUpayTransactionDto` + request mapping + redirect payload (see below)
 - [ ] **`backRedir` optional redirect URL (“Back to Merchant” link)** (per PDF line 159)
   - **Where**: `CreateUpayTransactionDto` + request mapping + redirect payload (see below)
 
 ### Redirect payload missing fields
 
-- [ ] **`countryCode` not included in `UpayRedirectPayload`**
+- [X] **`countryCode` not included in `UpayRedirectPayload`**
 - [ ] **`backRedir` not included in `UpayRedirectPayload`**
 
 > Note: This applies to the *WhiteLabel redirect integration* payload/encryption flow (PDF).

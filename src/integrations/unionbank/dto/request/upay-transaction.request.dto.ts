@@ -41,6 +41,8 @@ export interface CreateUpayTransactionParams {
   senderRefId: string;
   billerUuid: string;
   emailAddress: string;
+  /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted (e.g. in redirect payload). */
+  countryCode?: string;
   mobileNumber?: string;
   amount: number;
   paymentMethod?: UpayPaymentMethod;

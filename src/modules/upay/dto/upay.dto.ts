@@ -77,6 +77,20 @@ export class CreateUpayTransactionDto {
   emailAddress: string;
 
   @ApiPropertyOptional({
+    description:
+      'Country code for international numbers (no leading +). Default PH (63) if omitted.',
+    example: '63',
+    maxLength: 4,
+  })
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{1,4}$/, {
+    message: 'Country code must be 1-4 digits without leading +',
+  })
+  @MaxLength(4)
+  countryCode?: string;
+
+  @ApiPropertyOptional({
     description: 'Mobile number (10 digits, supports DITO +63 8)',
     example: '9171234567',
     maxLength: 13,
@@ -190,6 +204,20 @@ export class CreateUpayDebitCreditCardTransactionDto {
   @IsNotEmpty()
   @MaxLength(50)
   emailAddress: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Country code for international numbers (no leading +). Default PH (63) if omitted.',
+    example: '63',
+    maxLength: 4,
+  })
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{1,4}$/, {
+    message: 'Country code must be 1-4 digits without leading +',
+  })
+  @MaxLength(4)
+  countryCode?: string;
 
   @ApiPropertyOptional({
     description: 'Mobile number (10 digits, supports DITO +63 8)',

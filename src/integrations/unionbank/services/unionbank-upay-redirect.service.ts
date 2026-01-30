@@ -21,6 +21,8 @@ export interface UpayRedirectPayload extends Record<string, unknown> {
   senderRefId: string;
   tranRequestDate: string;
   emailAddress: string;
+  /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted per UB docs. */
+  countryCode?: string;
   mobileNumber?: string;
   amount: number;
   paymentMethod: UpayPaymentMethod;
@@ -73,6 +75,7 @@ export class UnionbankUpayRedirectService {
       senderRefId: params.senderRefId,
       tranRequestDate,
       emailAddress: params.emailAddress,
+      ...(params.countryCode != null && params.countryCode !== '' && { countryCode: params.countryCode }),
       mobileNumber: params.mobileNumber,
       amount: params.amount,
       paymentMethod: params.paymentMethod ?? 'paygate',
