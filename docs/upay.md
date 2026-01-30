@@ -192,6 +192,41 @@ Retrieves reference field definitions and validations configured for the biller.
 }
 ```
 
+### Get Biller UUID Status (transactions with biller post status)
+
+Retrieves transaction status list for a biller by UUID, including biller post status per transaction. Maps to UnionBank’s **Check Status** API (`GET /upay/payments/v1/transactions/{billerUuid}/status`).
+
+**Endpoint**: `GET /upay/payments/v1/transactions/:billerUuid/status`
+
+**Path Parameters**:
+
+- `billerUuid`: Biller UUID (provided by UnionBank)
+
+**Response** (200):
+
+```json
+{
+  "code": "TS",
+  "state": "Sent for Processing",
+  "uuid": "a02d79d8-57a5-4130-a4aa-43258ba06cdd",
+  "data": [
+    {
+      "status": "DEBIT_FAILED",
+      "billerPostStatus": "FAILED",
+      "amount": "500",
+      "transactionDateTime": "2022-04-18T05:56:39Z"
+    }
+  ]
+}
+```
+
+Notes:
+
+- Same path is used for both **UAT** and **Sandbox**; environment is selected via `UNIONBANK_ENV` and base URL.
+- Integration DTOs: `UpayBillerUuidStatusDataItem`, `UpayBillerUuidStatusResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`.
+- REST DTOs: `UpayBillerUuidStatusDataItemDto`, `UpayBillerUuidStatusResponseDto` in `src/modules/upay/dto/upay.dto.ts`.
+- Endpoint constant: `UPAY_BILLER_UUID_STATUS` in `src/common/constants/unionbank-endpoints.constant.ts`.
+
 ### Get InstaPay Banks
 
 Retrieves the list of **InstaPay receiving banks** supported by UnionBank UPay.

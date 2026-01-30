@@ -67,3 +67,27 @@ export interface UpayBillerReference {
 export interface UpayBillerUuidReferencesResponse {
   references: UpayBillerReference[];
 }
+
+/**
+ * Response for GET /upay/payments/v1/transactions/{billerUuid}/status
+ *
+ */
+
+export interface UpayBillerUuidStatusDataItem {
+  status: string;
+  billerPostStatus: string;
+  amount: string;
+  transactionDateTime: string;
+}
+
+/**
+ * Response for GET /upay/payments/v1/transactions/{billerUuid}/status
+ * (status with biller post status)
+ */
+
+export interface UpayBillerUuidStatusResponse {
+  code: string;
+  state: string;
+  uuid: string;
+  data: UpayBillerUuidStatusDataItem[];
+}

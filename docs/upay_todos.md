@@ -49,7 +49,8 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 - [x] **`UPAY_BILLER_DETAILS`**
 - [x] **`UPAY_BILLER_REFERENCES`**
-- [ ] **`UPAY_STATUS_BY_BILLER`** (status inquiry that includes biller post status; confirm exact upstream path in YAML)
+- [x] **`UPAY_BILLER_UUID_STATUS`** (status inquiry that includes biller post status)
+  - Implemented as `UPAY_BILLER_UUID_STATUS` in `unionbank-endpoints.constant.ts` (path: `/ubp/external/upay/payments/v1/transactions/{billerUuid}/status`); see `UpayBillerUuidStatusResponse` below.
 - [x] **`UPAY_INSTAPAY_BANKS`**
 - [x] **`UPAY_PESONET_BANKS`**
 - [x] **Privacy policy endpoint constant**
@@ -66,9 +67,12 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 - [x] **Biller reference definitions response DTO**
   - Integration: `UpayBillerUuidReferencesResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`
   - REST DTO: `UpayBillerReferencesResponseDto` in `src/modules/upay/dto/upay.dto.ts`
-- [ ] **`UpayBillerUuidStatusResponse` (status with biller post status)**
-  - Define integration response DTO (per YAML)
-  - Add REST DTO + controller route
+- [x] **`UpayBillerUuidStatusResponse` (status with biller post status)**
+  - Integration DTO: `UpayBillerUuidStatusDataItem`, `UpayBillerUuidStatusResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`
+  - REST DTO: `UpayBillerUuidStatusDataItemDto`, `UpayBillerUuidStatusResponseDto` in `src/modules/upay/dto/upay.dto.ts`
+  - Controller route: `GET /upay/payments/v1/transactions/:billerUuid/status` in `src/modules/upay/upay.controller.ts`
+  - Service: `getBillerUuidStatus` in `upay.service.ts` and `unionbank-upay.service.ts`; endpoint constant `UPAY_BILLER_UUID_STATUS` in `unionbank-endpoints.constant.ts`
+  - Documented in `docs/upay.md` (Get Biller UUID Status)
 - [x] **InstaPay bank list response DTO**
   - Integration: `UPayInstapayBankResponse` in `src/integrations/unionbank/dto/response/upay-bank.response.dto.ts`
   - REST DTO: `UpayInstapayBankResponseDto` in `src/modules/upay/dto/upay.dto.ts`

@@ -352,3 +352,48 @@ export class UpayPesonetBankResponseDto {
   @ApiPropertyOptional({ type: [UpayBankRecordDto] })
   record?: UpayBankRecordDto[];
 }
+
+/**
+ * Single transaction status item (biller UUID status)
+ */
+
+export class UpayBillerUuidStatusDataItemDto {
+  @ApiProperty({ description: 'Transaction status', example: 'DEBIT_FAILED' })
+  status: string;
+
+  @ApiProperty({ description: 'Biller post status', example: 'FAILED' })
+  billerPostStatus: string;
+
+  @ApiProperty({ description: 'Amount', example: '500' })
+  amount: string;
+
+  @ApiProperty({
+    description: 'Transaction date/time',
+    example: '2022-04-18T05:56:39Z',
+  })
+  transactionDateTime: string;
+}
+
+/**
+ * UPay Biller UUID Status Response DTO (status with biller post status)
+ * GET /upay/payments/v1/transactions/:billerUuid/status
+ */
+export class UpayBillerUuidStatusResponseDto {
+  @ApiProperty({ description: 'Response code', example: 'TS' })
+  code: string;
+
+  @ApiProperty({ description: 'State', example: 'Sent for Processing' })
+  state: string;
+
+  @ApiProperty({
+    description: 'UUID',
+    example: 'a02d79d8-57a5-4130-a4aa-43258ba06cdd',
+  })
+  uuid: string;
+
+  @ApiProperty({
+    type: [UpayBillerUuidStatusDataItemDto],
+    description: 'Transaction status list with biller post status',
+  })
+  data: UpayBillerUuidStatusDataItemDto[];
+}
