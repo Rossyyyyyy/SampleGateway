@@ -48,6 +48,8 @@ export interface CreateUpayTransactionParams {
   paymentMethod?: UpayPaymentMethod;
   skipWhitelabelPage?: boolean;
   callbackUrl: string;
+  /** Back to Merchant URL (redirect when "Back to Merchant" link is clicked on whitelabel page). Optional per PDF line 159. */
+  backRedir?: string;
   // Reference fields
   firstName: string;
   lastName: string;

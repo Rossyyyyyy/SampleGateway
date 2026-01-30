@@ -28,6 +28,8 @@ export interface UpayRedirectPayload extends Record<string, unknown> {
   paymentMethod: UpayPaymentMethod;
   skipWhitelabelPage: 'true' | 'false';
   callbackUrl: string;
+  /** Back to Merchant URL (redirect when "Back to Merchant" link is clicked). Optional per PDF line 159. */
+  backRedir?: string;
   references: Array<{ index: number | string; value: string }>;
 }
 
@@ -81,6 +83,7 @@ export class UnionbankUpayRedirectService {
       paymentMethod: params.paymentMethod ?? 'paygate',
       skipWhitelabelPage: params.skipWhitelabelPage ? 'true' : 'false',
       callbackUrl: params.callbackUrl,
+      ...(params.backRedir != null && params.backRedir !== '' && { backRedir: params.backRedir }),
       references: [
         { index: 1, value: params.firstName },
         { index: 2, value: params.accountNumber ?? '' },

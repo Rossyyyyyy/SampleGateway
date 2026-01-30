@@ -138,6 +138,17 @@ export class CreateUpayTransactionDto {
   @MaxLength(255)
   callbackUrl: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Back to Merchant URL. Payor is redirected here when "Back to Merchant" link is clicked on the whitelabel page.',
+    example: 'https://www.example.com/merchant',
+    maxLength: 255,
+  })
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  @MaxLength(255)
+  backRedir?: string;
+
   @ApiProperty({ description: 'First name' })
   @IsString()
   @IsNotEmpty()
@@ -257,6 +268,17 @@ export class CreateUpayDebitCreditCardTransactionDto {
   @IsNotEmpty()
   @MaxLength(255)
   callbackUrl: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Back to Merchant URL. Payor is redirected here when "Back to Merchant" link is clicked on the whitelabel page.',
+    example: 'https://www.example.com/merchant',
+    maxLength: 255,
+  })
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  @MaxLength(255)
+  backRedir?: string;
 
   @ApiProperty({ description: 'First name' })
   @IsString()
