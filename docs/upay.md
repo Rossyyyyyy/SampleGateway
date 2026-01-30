@@ -16,6 +16,8 @@ These endpoints call the UnionBank integration service:
 
 - `src/integrations/unionbank/services/unionbank-upay.service.ts`
 
+**Biller Autopost**: UnionBank can notify the gateway when a UPay transaction succeeds (autopost). The gateway exposes `POST /api/v1/webhooks/unionbank/autopost` for this; verification (HMAC), DTOs, idempotency, and audit are documented in [Webhooks](webhooks.md#receive-unionbank-upay-autopost-biller-autopost).
+
 ## Base URL
 
 ```text

@@ -28,7 +28,7 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 ### Biller Autopost webhook handler
 
-- [ ] **Webhook endpoint/handler to receive autopost notifications from UnionBank**
+- [X] **Webhook endpoint/handler to receive autopost notifications from UnionBank**
   - **Why**: Documentation mentions autopost (PDF lines 946–952)
   - **Expected**: handle successful transaction notifications for automatic posting
   - **Deliverables**:
@@ -36,6 +36,13 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
     - Verification/auth strategy (as agreed with UnionBank)
     - DTO/schema + persistence/audit logging
     - Idempotency handling (dedupe repeated notifications)
+  - **Implemented**:
+    - Route: `POST /api/v1/webhooks/unionbank/autopost` in `src/modules/webhooks/webhooks.controller.ts`
+    - Guard: `UnionbankAutopostAuthGuard` (HMAC-SHA256 on raw body via `x-unionbank-autopost-signature`); config: `UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET`
+    - DTOs: `UnionbankAutopostPayloadDto`, `UnionbankAutopostResponseDto` in `src/modules/webhooks/dto/unionbank-autopost.dto.ts`
+    - Audit: `AuditService.log` with `eventType: WEBHOOK`, `resourceType: upay_autopost`
+    - Idempotency: Redis key `webhook:unionbank:autopost:{transactionId}:{senderRefId}` (7-day TTL)
+    - CORS: `x-unionbank-autopost-signature` added to `allowedHeaders` in `main.ts`
 
 ### UPay module/controller
 

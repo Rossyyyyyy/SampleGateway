@@ -23,6 +23,9 @@ export interface UnionbankConfigType {
   scope: string;
   // OAuth token endpoint
   tokenEndpoint: string;
+  // In UnionBankConfigType interface
+  // Shared secrer for verifying UnionBank autopost webhook payloads (HMAC).
+  upayAutopostWebhookSecret?: string;
   // UPay transactions endpoint
   upayEndpoint: string;
   // UPay Redirect/Encryption settings
@@ -59,6 +62,7 @@ export const unionbankConfig = registerAs(
       (parseUnionbankEnv(process.env.UNIONBANK_ENV) === 'sandbox'
         ? '/partners/sb/partners/v1/oauth2/token'
         : '/ubp/uat/partners/v1/oauth2/token'),
+    upayAutopostWebhookSecret: process.env.UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET ?? '',
     upayEndpoint:
       process.env.UNIONBANK_UPAY_ENDPOINT ??
       '/ubp/external/upay/payments/v1/transactions',

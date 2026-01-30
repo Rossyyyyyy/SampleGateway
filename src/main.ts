@@ -31,6 +31,7 @@ async function bootstrap(): Promise<void> {
       'x-api-key',
       'x-idempotency-key',
       'x-request-id',
+      'x-unionbank-autopost-signature',
     ],
   });
 
