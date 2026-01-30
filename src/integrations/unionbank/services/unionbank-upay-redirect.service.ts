@@ -58,9 +58,10 @@ export class UnionbankUpayRedirectService {
         'UNIONBANK_UPAY_REDIRECT_DOMAIN is not configured. Required for redirect URL.',
       );
     }
-    if (!this.config.upayBillerUuid) {
+    const billerUuid = params.billerUuid ?? this.config.upayBillerUuid;
+    if (!billerUuid) {
       throw new Error(
-        'UNIONBANK_UPAY_BILLER_UUID is not configured. Required for redirect URL.',
+        'Biller UUID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_UUID.',
       );
     }
 
@@ -97,7 +98,7 @@ export class UnionbankUpayRedirectService {
         payload,
         this.config.upayAesKey,
         this.config.upayRedirectDomain,
-        this.config.upayBillerUuid,
+        billerUuid,
       );
 
       this.logger.log(

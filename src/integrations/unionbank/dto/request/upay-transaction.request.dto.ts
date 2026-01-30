@@ -27,6 +27,7 @@ export interface UpayReference {
 export interface UpayTransactionRequest {
   senderRefId: string;
   tranRequestDate: string; // ISO 8601 format: "2022-10-10T12:11:50.333"
+  billerUuid: string;
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
@@ -38,6 +39,7 @@ export interface UpayTransactionRequest {
 
 export interface CreateUpayTransactionParams {
   senderRefId: string;
+  billerUuid: string;
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
@@ -64,6 +66,7 @@ export function createUpayTransactionRequest(
   return {
     senderRefId: params.senderRefId,
     tranRequestDate,
+    billerUuid: params.billerUuid,
     emailAddress: params.emailAddress,
     mobileNumber: params.mobileNumber,
     amount: params.amount,

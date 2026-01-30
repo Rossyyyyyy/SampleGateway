@@ -57,6 +57,16 @@ export class UpayReferenceDto {
  */
 export class CreateUpayTransactionDto {
   @ApiProperty({
+    description: 'Biller UUID (provided by UnionBank)',
+    example: '38470A84-4D88-1EAC-D68D-7E63F35FBAF1',
+    maxLength: 36,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(36)
+  billerUuid: string;
+
+  @ApiProperty({
     description: 'Email address of the payor',
     example: 'juandelacruz@email.com',
     maxLength: 50,
@@ -161,6 +171,16 @@ export class CreateUpayTransactionDto {
  * Separate class (instead of `Omit<>`) so Swagger + validation work correctly.
  */
 export class CreateUpayDebitCreditCardTransactionDto {
+  @ApiProperty({
+    description: 'Biller UUID (provided by UnionBank)',
+    example: '38470A84-4D88-1EAC-D68D-7E63F35FBAF1',
+    maxLength: 36,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(36)
+  billerUuid: string;
+
   @ApiProperty({
     description: 'Email address of the payor',
     example: 'juandelacruz@email.com',

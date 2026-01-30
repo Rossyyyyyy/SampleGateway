@@ -32,6 +32,7 @@ export class UpayService {
 
     const params: CreateUpayTransactionParams = {
       senderRefId,
+      billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
       mobileNumber: dto.mobileNumber,
       amount: dto.amount,
@@ -77,6 +78,7 @@ export class UpayService {
 
     const params: Omit<CreateUpayTransactionParams, 'paymentMethod'> = {
       senderRefId,
+      billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
       mobileNumber: dto.mobileNumber,
       amount: dto.amount,
