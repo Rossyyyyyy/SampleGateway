@@ -1,10 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../../infrastructure/redis/redis.service';
+import { AuditService } from '../../audit/audit.service';
+import { ActorType } from '../../audit/interfaces/audit-event.interface';
+import { AuditEventType } from '../../audit/interfaces/audit-event.interface';
+import {
+  UnionbankAutopostPayloadDto,
+  UnionbankAutopostResponseDto,
+} from './dto/unionbank-autopost.dto';
 import { WebhookPayloadDto, WebhookResponseDto } from './dto/webhook.dto';
 import { TransferWebhookHandler } from './handlers/transfer-webhook.handler';
 
 const WEBHOOK_PROCESSED_KEY_PREFIX = 'webhook:processed:';
 const WEBHOOK_TTL_SECONDS = 86400 * 7; // 7 days
+const AUTOPOST_PROCESSED_KEY_PREFIX = 'webhook:unionbank:autopost:';
 
 @Injectable()
 export class WebhooksService {
@@ -13,7 +21,68 @@ export class WebhooksService {
   constructor(
     private readonly redisService: RedisService,
     private readonly transferHandler: TransferWebhookHandler,
+    private readonly auditService: AuditService,
   ) {}
+
+  async processUnionbankAutopost(
+    payload: UnionbankAutopostPayloadDto,
+  ): Promise<UnionbankAutopostResponseDto> {
+    const idempotencyKey = `${payload.transactionId}:${payload.senderRefId}`;
+
+    const isDuplicate = await this.redisService.exists(
+      `${AUTOPOST_PROCESSED_KEY_PREFIX}${idempotencyKey}`,
+    );
+    if (isDuplicate) {
+      this.logger.warn(`Duplicate autopost ignored: ${idempotencyKey}`);
+      return {
+        received: true,
+        idempotencyKey,
+        message: 'Already processed',
+      };
+    }
+
+    await this.auditService.log({
+      eventType: AuditEventType.WEBHOOK,
+      action: 'AUTOPOST_RECEIVED',
+      resourceType: 'upay_autopost',
+      resourceId: idempotencyKey,
+      actorId: payload.transactionId,
+      actorType: ActorType.WEBHOOK,
+      metadata: {
+        senderRefId: payload.senderRefId,
+        uuid: payload.uuid,
+        amount: payload.amount,
+        status: payload.status,
+        transactionDateTime: payload.transactionDateTime,
+      },
+    });
+
+    this.routeAutopost(payload);
+
+    await this.redisService.set(
+      `${AUTOPOST_PROCESSED_KEY_PREFIX}${idempotencyKey}`,
+      new Date().toISOString(),
+      WEBHOOK_TTL_SECONDS,
+    );
+
+    return { received: true, idempotencyKey };
+  }
+
+  private routeAutopost(payload: UnionbankAutopostPayloadDto): void {
+    // Only treat as success when status indicates completion (align with UB values)
+    if (
+      payload.status === 'COMPLETED' ||
+      payload.billerPostStatus === 'SUCCESS'
+    ) {
+      this.logger.log(`Autopost success: ${payload.senderRefId}`, {
+        uuid: payload.uuid,
+      });
+    } else {
+      this.logger.log(`Autopost non-success: ${payload.senderRefId}`, {
+        status: payload.status,
+      });
+    }
+  }
 
   async processWebhook(
     payload: WebhookPayloadDto,

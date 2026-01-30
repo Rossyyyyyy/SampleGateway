@@ -3,24 +3,24 @@
 This file tracks **remaining UPay gaps** to address in a future pass. Items are marked:
 
 - [ ] pending
-- [x] done (already implemented in this repo)
+- [X] done (already implemented in this repo)
 
 ## Missing request/response fields
 
 ### Request DTOs missing fields
 
-- [ ] **`billerUuid` required in API requests** (per YAML docs around line ~35734)
+- [X] **`billerUuid` required in API requests** (per YAML docs around line ~35734)
   - **Where**: `src/modules/upay/dto/upay.dto.ts` (likely `CreateUpayTransactionDto`)
   - **Also impacts**: `src/integrations/unionbank/dto/request/*` payload mapping
-- [ ] **`countryCode` optional for international numbers** (per PDF lines 149–154)
+- [X] **`countryCode` optional for international numbers** (per PDF lines 149–154)
   - **Where**: `CreateUpayTransactionDto` + request mapping + redirect payload (see below)
-- [ ] **`backRedir` optional redirect URL (“Back to Merchant” link)** (per PDF line 159)
+- [X] **`backRedir` optional redirect URL (“Back to Merchant” link)** (per PDF line 159)
   - **Where**: `CreateUpayTransactionDto` + request mapping + redirect payload (see below)
 
 ### Redirect payload missing fields
 
-- [ ] **`countryCode` not included in `UpayRedirectPayload`**
-- [ ] **`backRedir` not included in `UpayRedirectPayload`**
+- [X] **`countryCode` not included in `UpayRedirectPayload`**
+- [X] **`backRedir` not included in `UpayRedirectPayload`**
 
 > Note: This applies to the *WhiteLabel redirect integration* payload/encryption flow (PDF).
 
@@ -28,7 +28,7 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 ### Biller Autopost webhook handler
 
-- [ ] **Webhook endpoint/handler to receive autopost notifications from UnionBank**
+- [X] **Webhook endpoint/handler to receive autopost notifications from UnionBank**
   - **Why**: Documentation mentions autopost (PDF lines 946–952)
   - **Expected**: handle successful transaction notifications for automatic posting
   - **Deliverables**:
@@ -36,10 +36,17 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
     - Verification/auth strategy (as agreed with UnionBank)
     - DTO/schema + persistence/audit logging
     - Idempotency handling (dedupe repeated notifications)
+  - **Implemented**:
+    - Route: `POST /api/v1/webhooks/unionbank/autopost` in `src/modules/webhooks/webhooks.controller.ts`
+    - Guard: `UnionbankAutopostAuthGuard` (HMAC-SHA256 on raw body via `x-unionbank-autopost-signature`); config: `UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET`
+    - DTOs: `UnionbankAutopostPayloadDto`, `UnionbankAutopostResponseDto` in `src/modules/webhooks/dto/unionbank-autopost.dto.ts`
+    - Audit: `AuditService.log` with `eventType: WEBHOOK`, `resourceType: upay_autopost`
+    - Idempotency: Redis key `webhook:unionbank:autopost:{transactionId}:{senderRefId}` (7-day TTL)
+    - CORS: `x-unionbank-autopost-signature` added to `allowedHeaders` in `main.ts`
 
 ### UPay module/controller
 
-- [x] **Dedicated UPay controller exposing endpoints**
+- [X] **Dedicated UPay controller exposing endpoints**
   - Implemented in: `src/modules/upay/upay.controller.ts`
   - Module/service: `src/modules/upay/upay.module.ts`, `src/modules/upay/upay.service.ts`
 
@@ -47,12 +54,13 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 ### Missing from `unionbank-endpoints.constant.ts`
 
-- [x] **`UPAY_BILLER_DETAILS`**
-- [x] **`UPAY_BILLER_REFERENCES`**
-- [ ] **`UPAY_STATUS_BY_BILLER`** (status inquiry that includes biller post status; confirm exact upstream path in YAML)
-- [x] **`UPAY_INSTAPAY_BANKS`**
-- [x] **`UPAY_PESONET_BANKS`**
-- [x] **Privacy policy endpoint constant**
+- [X] **`UPAY_BILLER_DETAILS`**
+- [X] **`UPAY_BILLER_REFERENCES`**
+- [X] **`UPAY_BILLER_UUID_STATUS`** (status inquiry that includes biller post status)
+  - Implemented as `UPAY_BILLER_UUID_STATUS` in `unionbank-endpoints.constant.ts` (path: `/ubp/external/upay/payments/v1/transactions/{billerUuid}/status`); see `UpayBillerUuidStatusResponse` below.
+- [X] **`UPAY_INSTAPAY_BANKS`**
+- [X] **`UPAY_PESONET_BANKS`**
+- [X] **Privacy policy endpoint constant**
   - Implemented as: `UPAY_PRIVACY_POLICY` (maps to `/ubp/external/upay/payments/v1/privacy`)
   - If you prefer naming parity with docs, consider aliasing to `UPAY_PRIVACY`
 
@@ -60,19 +68,22 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 > Some DTOs already exist in `src/integrations/unionbank/dto/response/` and the module DTOs under `src/modules/upay/dto/`.
 
-- [x] **Biller details response DTO**
+- [X] **Biller details response DTO**
   - Integration: `UpayBillerUuidResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`
   - REST DTO: `UpayBillerResponseDto` in `src/modules/upay/dto/upay.dto.ts`
-- [x] **Biller reference definitions response DTO**
+- [X] **Biller reference definitions response DTO**
   - Integration: `UpayBillerUuidReferencesResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`
   - REST DTO: `UpayBillerReferencesResponseDto` in `src/modules/upay/dto/upay.dto.ts`
-- [ ] **`UpayBillerUuidStatusResponse` (status with biller post status)**
-  - Define integration response DTO (per YAML)
-  - Add REST DTO + controller route
-- [x] **InstaPay bank list response DTO**
+- [X] **`UpayBillerUuidStatusResponse` (status with biller post status)**
+  - Integration DTO: `UpayBillerUuidStatusDataItem`, `UpayBillerUuidStatusResponse` in `src/integrations/unionbank/dto/response/upay-biller.response.dto.ts`
+  - REST DTO: `UpayBillerUuidStatusDataItemDto`, `UpayBillerUuidStatusResponseDto` in `src/modules/upay/dto/upay.dto.ts`
+  - Controller route: `GET /upay/payments/v1/transactions/:billerUuid/status` in `src/modules/upay/upay.controller.ts`
+  - Service: `getBillerUuidStatus` in `upay.service.ts` and `unionbank-upay.service.ts`; endpoint constant `UPAY_BILLER_UUID_STATUS` in `unionbank-endpoints.constant.ts`
+  - Documented in `docs/upay.md` (Get Biller UUID Status)
+- [X] **InstaPay bank list response DTO**
   - Integration: `UPayInstapayBankResponse` in `src/integrations/unionbank/dto/response/upay-bank.response.dto.ts`
   - REST DTO: `UpayInstapayBankResponseDto` in `src/modules/upay/dto/upay.dto.ts`
-- [x] **PESONet bank list response DTO**
+- [X] **PESONet bank list response DTO**
   - Integration: `UPayPesonetBankResponse` in `src/integrations/unionbank/dto/response/upay-bank.response.dto.ts`
   - REST DTO: `UpayPesonetBankResponseDto` in `src/modules/upay/dto/upay.dto.ts`
 

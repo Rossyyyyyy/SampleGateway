@@ -11,6 +11,10 @@ export const UnionbankEndpointsByEnv = {
     // OAuth (Sandbox routing)
     TOKEN: '/partners/sb/partners/v1/oauth2/token',
 
+    // UPay Biller UUID status
+    UPAY_BILLER_UUID_STATUS:
+      '/ubp/external/upay/payments/v1/transactions/{billerUuid}/status',
+
     // UPay Biller Information
     UPAY_BILLER_DETAILS: '/ubp/external/upay/payments/v1/billers/{billerUuid}',
     UPAY_BILLER_REFERENCES:
@@ -41,6 +45,10 @@ export const UnionbankEndpointsByEnv = {
   uat: {
     // OAuth (UPay doc "Partner Authentication API")
     TOKEN: '/ubp/uat/partners/v1/oauth2/token',
+
+    // UPay Biller UUID status
+    UPAY_BILLER_UUID_STATUS:
+      '/ubp/external/upay/payments/v1/transactions/{billerUuid}/status',
 
     // UPay Biller Information
     UPAY_BILLER_DETAILS: '/ubp/external/upay/payments/v1/billers/{billerUuid}',

@@ -12,6 +12,7 @@ import {
 import {
   UpayBillerUuidResponse,
   UpayBillerUuidReferencesResponse,
+  UpayBillerUuidStatusResponse,
 } from '../dto/response/upay-biller.response.dto';
 import type {
   UPayInstapayBankResponse,
@@ -190,5 +191,32 @@ export class UnionbankUpayService {
       UnionbankEndpoints.UPAY_PESONET_BANKS,
       { requestId },
     );
+  }
+
+  async getBillerUuidStatus(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<UpayBillerUuidStatusResponse> {
+    this.logger.log('Getting UPay status for biller UUID: ${billerUuid}');
+
+    const endpointTemplate =
+      UnionbankEndpoints[
+        'UPAY_BILLER_UUID_STATUS' as keyof typeof UnionbankEndpoints
+      ];
+    if (!endpointTemplate || typeof endpointTemplate !== 'string') {
+      throw new Error('UPAY_BILLER_UUID_STATUS endpoint not found');
+    }
+
+    const endpoint = endpointTemplate.replace('{billerUuid}', billerUuid);
+
+    const response = await this.apiClient.get<UpayBillerUuidStatusResponse>(
+      endpoint,
+      { requestId },
+    );
+
+    this.logger.log(
+      'Biller UUID status retrieved: ${response.data?.length ?? 0} items',
+    );
+    return response;
   }
 }

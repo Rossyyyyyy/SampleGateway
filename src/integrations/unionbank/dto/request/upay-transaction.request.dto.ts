@@ -27,6 +27,7 @@ export interface UpayReference {
 export interface UpayTransactionRequest {
   senderRefId: string;
   tranRequestDate: string; // ISO 8601 format: "2022-10-10T12:11:50.333"
+  billerUuid: string;
   emailAddress: string;
   mobileNumber?: string;
   amount: number;
@@ -38,12 +39,17 @@ export interface UpayTransactionRequest {
 
 export interface CreateUpayTransactionParams {
   senderRefId: string;
+  billerUuid: string;
   emailAddress: string;
+  /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted (e.g. in redirect payload). */
+  countryCode?: string;
   mobileNumber?: string;
   amount: number;
   paymentMethod?: UpayPaymentMethod;
   skipWhitelabelPage?: boolean;
   callbackUrl: string;
+  /** Back to Merchant URL (redirect when "Back to Merchant" link is clicked on whitelabel page). Optional per PDF line 159. */
+  backRedir?: string;
   // Reference fields
   firstName: string;
   lastName: string;
@@ -64,6 +70,7 @@ export function createUpayTransactionRequest(
   return {
     senderRefId: params.senderRefId,
     tranRequestDate,
+    billerUuid: params.billerUuid,
     emailAddress: params.emailAddress,
     mobileNumber: params.mobileNumber,
     amount: params.amount,

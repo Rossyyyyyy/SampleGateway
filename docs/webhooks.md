@@ -17,6 +17,59 @@ Receive webhook notifications from UnionBank.
 - `Content-Type: application/json` (required)
 - `x-api-key: <api-key>` (optional, for additional security)
 
+## Receive UnionBank UPay Autopost (Biller Autopost)
+
+UnionBank calls this endpoint whenever there is a successful UPay transaction, so the biller can automatically post/credit the payment (per UPay documentation, Biller Autopost).
+
+**Endpoint**: `POST /api/v1/webhooks/unionbank/autopost`
+
+**Headers**:
+
+- `Content-Type: application/json` (required)
+- `x-unionbank-autopost-signature: <hmac-sha256-hex>` (required; HMAC-SHA256 of raw request body using the shared secret agreed with UnionBank)
+
+**Request Body** (structure agreed with UnionBank; typical fields):
+
+```json
+{
+  "transactionId": "8834702211220159287",
+  "senderRefId": "TXN-20240125-001",
+  "uuid": "df920b19-c0fa-4ff8-a9d2-195c202e4771",
+  "amount": 100,
+  "status": "COMPLETED",
+  "transactionDateTime": "2024-01-25T10:00:00Z",
+  "paymentMethod": "instapay",
+  "billerPostStatus": "SUCCESS",
+  "references": []
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "received": true,
+  "idempotencyKey": "8834702211220159287:TXN-20240125-001",
+  "message": "Already processed"
+}
+```
+
+**Behavior**:
+
+- **Verification**: Request is accepted only if `x-unionbank-autopost-signature` matches HMAC-SHA256 of the raw body with `UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET`.
+- **Idempotency**: Notifications with the same `transactionId` and `senderRefId` are deduplicated (Redis key, 7-day TTL); duplicates return 200 with `message: "Already processed"`.
+- **Audit**: Each received autopost is logged via `AuditService` (`eventType: WEBHOOK`, `resourceType: upay_autopost`).
+
+**Example**:
+
+```bash
+# Sign the body with your shared secret (HMAC-SHA256, hex), then:
+curl -X POST http://localhost:3000/api/v1/webhooks/unionbank/autopost \
+  -H "Content-Type: application/json" \
+  -H "x-unionbank-autopost-signature: <signature>" \
+  -d '{"transactionId":"...","senderRefId":"...","uuid":"...","amount":100,"status":"COMPLETED","transactionDateTime":"2024-01-25T10:00:00Z"}'
+```
+
 **Request Body**:
 
 ```json
@@ -142,6 +195,10 @@ Use API key header for additional security:
 curl -X POST ... \
   -H "x-api-key: your-api-key"
 ```
+
+### UnionBank UPay Autopost
+
+The `/webhooks/unionbank/autopost` endpoint requires `x-unionbank-autopost-signature` (HMAC-SHA256 of raw body). This header is included in CORS `allowedHeaders` in the application.
 
 ### IP Whitelisting
 

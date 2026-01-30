@@ -21,11 +21,15 @@ export interface UpayRedirectPayload extends Record<string, unknown> {
   senderRefId: string;
   tranRequestDate: string;
   emailAddress: string;
+  /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted per UB docs. */
+  countryCode?: string;
   mobileNumber?: string;
   amount: number;
   paymentMethod: UpayPaymentMethod;
   skipWhitelabelPage: 'true' | 'false';
   callbackUrl: string;
+  /** Back to Merchant URL (redirect when "Back to Merchant" link is clicked). Optional per PDF line 159. */
+  backRedir?: string;
   references: Array<{ index: number | string; value: string }>;
 }
 
@@ -58,9 +62,10 @@ export class UnionbankUpayRedirectService {
         'UNIONBANK_UPAY_REDIRECT_DOMAIN is not configured. Required for redirect URL.',
       );
     }
-    if (!this.config.upayBillerUuid) {
+    const billerUuid = params.billerUuid ?? this.config.upayBillerUuid;
+    if (!billerUuid) {
       throw new Error(
-        'UNIONBANK_UPAY_BILLER_UUID is not configured. Required for redirect URL.',
+        'Biller UUID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_UUID.',
       );
     }
 
@@ -72,11 +77,13 @@ export class UnionbankUpayRedirectService {
       senderRefId: params.senderRefId,
       tranRequestDate,
       emailAddress: params.emailAddress,
+      ...(params.countryCode != null && params.countryCode !== '' && { countryCode: params.countryCode }),
       mobileNumber: params.mobileNumber,
       amount: params.amount,
       paymentMethod: params.paymentMethod ?? 'paygate',
       skipWhitelabelPage: params.skipWhitelabelPage ? 'true' : 'false',
       callbackUrl: params.callbackUrl,
+      ...(params.backRedir != null && params.backRedir !== '' && { backRedir: params.backRedir }),
       references: [
         { index: 1, value: params.firstName },
         { index: 2, value: params.accountNumber ?? '' },
@@ -97,7 +104,7 @@ export class UnionbankUpayRedirectService {
         payload,
         this.config.upayAesKey,
         this.config.upayRedirectDomain,
-        this.config.upayBillerUuid,
+        billerUuid,
       );
 
       this.logger.log(

@@ -9,6 +9,7 @@ import {
   UpayStatusResponseDto,
   UpayBillerResponseDto,
   UpayBillerReferencesResponseDto,
+  UpayBillerUuidStatusResponseDto,
   UpayInstapayBankResponseDto,
   UpayPesonetBankResponseDto,
 } from './dto/upay.dto';
@@ -31,12 +32,15 @@ export class UpayService {
 
     const params: CreateUpayTransactionParams = {
       senderRefId,
+      billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
+      countryCode: dto.countryCode,
       mobileNumber: dto.mobileNumber,
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
       callbackUrl: dto.callbackUrl,
+      backRedir: dto.backRedir,
       firstName: dto.firstName,
       lastName: dto.lastName,
       userRef: dto.userRef,
@@ -76,11 +80,14 @@ export class UpayService {
 
     const params: Omit<CreateUpayTransactionParams, 'paymentMethod'> = {
       senderRefId,
+      billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
+      countryCode: dto.countryCode,
       mobileNumber: dto.mobileNumber,
       amount: dto.amount,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
       callbackUrl: dto.callbackUrl,
+      backRedir: dto.backRedir,
       firstName: dto.firstName,
       lastName: dto.lastName,
       userRef: dto.userRef,
@@ -104,6 +111,28 @@ export class UpayService {
       message: response.message,
       paymentUrl: response.paymentUrl,
       status: response.status,
+    };
+  }
+
+  /**
+   * Get status by biller UUID (transactions status with biller post status)
+   */
+  async getBillerUuidStatus(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<UpayBillerUuidStatusResponseDto> {
+    this.logger.log('Getting UPay status for biller UUID: ${billerUuid}');
+
+    const response = await this.unionbankUpayService.getBillerUuidStatus(
+      billerUuid,
+      requestId,
+    );
+
+    return {
+      code: response.code,
+      state: response.state,
+      uuid: response.uuid,
+      data: response.data ?? [],
     };
   }
 

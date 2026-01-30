@@ -57,6 +57,16 @@ export class UpayReferenceDto {
  */
 export class CreateUpayTransactionDto {
   @ApiProperty({
+    description: 'Biller UUID (provided by UnionBank)',
+    example: '38470A84-4D88-1EAC-D68D-7E63F35FBAF1',
+    maxLength: 36,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(36)
+  billerUuid: string;
+
+  @ApiProperty({
     description: 'Email address of the payor',
     example: 'juandelacruz@email.com',
     maxLength: 50,
@@ -65,6 +75,20 @@ export class CreateUpayTransactionDto {
   @IsNotEmpty()
   @MaxLength(50)
   emailAddress: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Country code for international numbers (no leading +). Default PH (63) if omitted.',
+    example: '63',
+    maxLength: 4,
+  })
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{1,4}$/, {
+    message: 'Country code must be 1-4 digits without leading +',
+  })
+  @MaxLength(4)
+  countryCode?: string;
 
   @ApiPropertyOptional({
     description: 'Mobile number (10 digits, supports DITO +63 8)',
@@ -114,6 +138,17 @@ export class CreateUpayTransactionDto {
   @MaxLength(255)
   callbackUrl: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Back to Merchant URL. Payor is redirected here when "Back to Merchant" link is clicked on the whitelabel page.',
+    example: 'https://www.example.com/merchant',
+    maxLength: 255,
+  })
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  @MaxLength(255)
+  backRedir?: string;
+
   @ApiProperty({ description: 'First name' })
   @IsString()
   @IsNotEmpty()
@@ -162,6 +197,16 @@ export class CreateUpayTransactionDto {
  */
 export class CreateUpayDebitCreditCardTransactionDto {
   @ApiProperty({
+    description: 'Biller UUID (provided by UnionBank)',
+    example: '38470A84-4D88-1EAC-D68D-7E63F35FBAF1',
+    maxLength: 36,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(36)
+  billerUuid: string;
+
+  @ApiProperty({
     description: 'Email address of the payor',
     example: 'juandelacruz@email.com',
     maxLength: 50,
@@ -170,6 +215,20 @@ export class CreateUpayDebitCreditCardTransactionDto {
   @IsNotEmpty()
   @MaxLength(50)
   emailAddress: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Country code for international numbers (no leading +). Default PH (63) if omitted.',
+    example: '63',
+    maxLength: 4,
+  })
+  @IsString()
+  @IsOptional()
+  @Matches(/^[0-9]{1,4}$/, {
+    message: 'Country code must be 1-4 digits without leading +',
+  })
+  @MaxLength(4)
+  countryCode?: string;
 
   @ApiPropertyOptional({
     description: 'Mobile number (10 digits, supports DITO +63 8)',
@@ -209,6 +268,17 @@ export class CreateUpayDebitCreditCardTransactionDto {
   @IsNotEmpty()
   @MaxLength(255)
   callbackUrl: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Back to Merchant URL. Payor is redirected here when "Back to Merchant" link is clicked on the whitelabel page.',
+    example: 'https://www.example.com/merchant',
+    maxLength: 255,
+  })
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  @MaxLength(255)
+  backRedir?: string;
 
   @ApiProperty({ description: 'First name' })
   @IsString()
@@ -351,4 +421,49 @@ export class UpayPesonetBankResponseDto {
 
   @ApiPropertyOptional({ type: [UpayBankRecordDto] })
   record?: UpayBankRecordDto[];
+}
+
+/**
+ * Single transaction status item (biller UUID status)
+ */
+
+export class UpayBillerUuidStatusDataItemDto {
+  @ApiProperty({ description: 'Transaction status', example: 'DEBIT_FAILED' })
+  status: string;
+
+  @ApiProperty({ description: 'Biller post status', example: 'FAILED' })
+  billerPostStatus: string;
+
+  @ApiProperty({ description: 'Amount', example: '500' })
+  amount: string;
+
+  @ApiProperty({
+    description: 'Transaction date/time',
+    example: '2022-04-18T05:56:39Z',
+  })
+  transactionDateTime: string;
+}
+
+/**
+ * UPay Biller UUID Status Response DTO (status with biller post status)
+ * GET /upay/payments/v1/transactions/:billerUuid/status
+ */
+export class UpayBillerUuidStatusResponseDto {
+  @ApiProperty({ description: 'Response code', example: 'TS' })
+  code: string;
+
+  @ApiProperty({ description: 'State', example: 'Sent for Processing' })
+  state: string;
+
+  @ApiProperty({
+    description: 'UUID',
+    example: 'a02d79d8-57a5-4130-a4aa-43258ba06cdd',
+  })
+  uuid: string;
+
+  @ApiProperty({
+    type: [UpayBillerUuidStatusDataItemDto],
+    description: 'Transaction status list with biller post status',
+  })
+  data: UpayBillerUuidStatusDataItemDto[];
 }
