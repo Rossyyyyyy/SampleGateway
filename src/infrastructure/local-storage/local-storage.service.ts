@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 import {
   LocalStorageConfig,
   LocalStorageData,
@@ -85,6 +85,7 @@ export class LocalStorageService implements OnModuleDestroy {
   /**
    * Force save to disk
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async save(): Promise<void> {
     try {
       this.data.metadata.updatedAt = new Date().toISOString();
@@ -229,13 +230,14 @@ export class LocalCollection<T = unknown> {
    * Create a new document with auto-generated ID
    */
   async create(data: T): Promise<StorageDocument<T>> {
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     return this.set(id, data);
   }
 
   /**
    * Set a document with specific ID (create or update)
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async set(id: string, data: T): Promise<StorageDocument<T>> {
     const now = new Date().toISOString();
     const existing = this.getDocument(id);
@@ -254,6 +256,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Get a document by ID
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async get(id: string): Promise<StorageDocument<T> | null> {
     return this.getDocument(id);
   }
@@ -261,6 +264,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Get document data by ID (without metadata)
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getData(id: string): Promise<T | null> {
     const doc = this.getDocument(id);
     return doc?.data || null;
@@ -285,6 +289,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Delete a document
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async delete(id: string): Promise<boolean> {
     return this.storage._deleteDocument(this.name, id);
   }
@@ -292,6 +297,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Check if document exists
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async exists(id: string): Promise<boolean> {
     return this.getDocument(id) !== null;
   }
@@ -299,6 +305,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Get all documents in collection
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getAll(): Promise<StorageDocument<T>[]> {
     const collection = this.storage._getCollection<T>(this.name);
     if (!collection) {
@@ -385,6 +392,7 @@ export class LocalCollection<T = unknown> {
   /**
    * Clear all documents in this collection
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async clear(): Promise<void> {
     const collection = this.storage._getCollection<T>(this.name);
     if (collection) {

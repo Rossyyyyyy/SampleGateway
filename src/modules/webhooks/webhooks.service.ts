@@ -41,7 +41,7 @@ export class WebhooksService {
       };
     }
 
-    await this.auditService.log({
+    this.auditService.log({
       eventType: AuditEventType.WEBHOOK,
       action: 'AUTOPOST_RECEIVED',
       resourceType: 'upay_autopost',
