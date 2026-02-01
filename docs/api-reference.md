@@ -367,6 +367,7 @@ Common error codes:
 - `INVALID_ACCOUNT`: Invalid account number
 - `TRANSFER_LIMIT_EXCEEDED`: Transfer amount exceeds limit
 - `RATE_LIMIT_EXCEEDED`: Too many requests
+- `ERR_REFERENCE_VALIDATION`: UPay transaction reference validation failed
 
 ## Rate Limiting
 

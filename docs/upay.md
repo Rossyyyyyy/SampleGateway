@@ -292,6 +292,69 @@ Key validations:
 - `paymentMethod` (if present) must be one of:
   - `debit/credit`, `ub online`, `instapay`, `instapay p2b`, `paygate`, `gcash`, `grabpay`, `bayad_center`, `cebl`, `ecpay`, `plwn`, `mlh`, `smr`, `rds`
 
+## Dynamic Reference Validation
+
+The gateway performs dynamic validation of transaction references before sending the request to UnionBank. This ensures that the data meets the specific requirements of the chosen biller.
+
+### How it Works
+
+1.  When `POST /upay/transactions` is called, the gateway first identifies the biller via `billerUuid`.
+2.  It fetches the reference definitions for that biller using the UnionBank API (`GET /billers/{billerUuid}/references`).
+3.  The gateway maps the standard DTO fields (`firstName`, `accountNumber`, etc.) and any custom `references[]` to their respective indices.
+4.  Each reference is validated against the biller's defined rules:
+    *   **Required**: Checks if a mandatory reference is missing.
+    *   **Min/Max Length**: Checks if the character length is within the defined range.
+    *   **Field Type**: Validates if the value matches the required type (`NUMERIC`, `ALPHABETIC`, `ALPHANUMERIC`).
+    *   **Field Validation Pattern**: Applies specific patterns like `Email`, `Numeric`, `Alphabetic`, etc., as defined in the biller configuration.
+
+### Reference Mapping
+
+Standard DTO fields are mapped to reference indices as follows (based on typical UnionBank configurations):
+
+| Index | Field | Description |
+| :--- | :--- | :--- |
+| 1 | `firstName` | Payor First Name |
+| 2 | `accountNumber` | Bill Account Number |
+| 3 | `userRef` | User Reference Number |
+| 4 | `lastName` | Payor Last Name |
+| 5 | `firstName` | (Repeated) |
+
+Custom indices provided in the `references[]` array in the DTO are also validated.
+
+### Error Response
+
+If validation fails, the API returns a `400 Bad Request` with a `ERR_REFERENCE_VALIDATION` code and detailed error messages.
+
+**Response** (400):
+
+```json
+{
+  "code": "ERR_REFERENCE_VALIDATION",
+  "message": "2 reference validation errors",
+  "details": {
+    "errors": [
+      {
+        "index": 2,
+        "name": "Account Number",
+        "message": "Account Number must be at least 9 characters",
+        "code": "MIN_LENGTH"
+      },
+      {
+        "index": 4,
+        "name": "Last Name",
+        "message": "Last Name is required",
+        "code": "REQUIRED"
+      }
+    ],
+    "messages": [
+      "Account Number must be at least 9 characters",
+      "Last Name is required"
+    ]
+  },
+  "timestamp": "2024-03-20T10:00:00.000Z"
+}
+```
+
 ## Registration / Wiring
 
 This feature is enabled by:

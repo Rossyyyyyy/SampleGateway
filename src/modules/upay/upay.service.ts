@@ -264,7 +264,7 @@ export class UpayService {
 
     // Map standard DTO fields to reference indices
     // Index mapping based on typical UPay biller configuration:
-    // 1 = First Name, 2 = Account Number, 3 = User Ref, 4 = Last Name, 5 = Additional Ref
+    // 1 = First Name, 2 = Account Number, 3 = User Ref, 4 = Last Name, 5 = First Name (Repeat)
     if (dto.firstName) {
       references.push({ index: 1, value: dto.firstName });
     }

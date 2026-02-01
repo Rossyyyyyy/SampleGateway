@@ -89,7 +89,7 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 ## Missing validation/features
 
-- [ ] **Reference validation**
+- [X] **Reference validation**
   - **Goal**: dynamic validation based on biller reference definitions (per YAML)
   - **Approach**: fetch biller references, then validate request `references[]` against min/max/required/pattern
 - [ ] **Payment method validation**

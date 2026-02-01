@@ -68,6 +68,7 @@ Handles payment processing via UnionBank's uPay service.
 - `createTransaction()`: Create uPay transaction (Direct API)
 - `createDebitCreditCardTransaction()`: Create debit/credit card payment transaction
 - `getTransactionStatus()`: Get transaction status
+- `getBillerReferences()`: Fetch reference definitions for a biller
 
 #### Payment Methods
 
@@ -181,6 +182,37 @@ const redirectUrl = await upayRedirectService.createRedirectUrl({
 });
 
 // Redirect user to redirectUrl
+```
+
+### Reference Validation Service
+
+Provides dynamic validation for UPay transaction references based on biller-defined rules.
+
+**Service**: `ReferenceValidationService`
+
+**Methods**:
+
+- `validateReferences()`: Validates an array of references against biller definitions
+- `validateReferencesFromResponse()`: Helper to validate using a raw biller references API response
+
+**Validations Performed**:
+
+- **Required Fields**: Ensures mandatory references are present
+- **Length Constraints**: Validates `minCharLength` and `maxCharLength`
+- **Field Types**: Validates `NUMERIC`, `ALPHABETIC`, or `ALPHANUMERIC` constraints
+- **Pattern Matching**: Validates specific formats like `Email`, `Simple`, etc.
+
+**Example**:
+
+```typescript
+const result = validationService.validateReferences(
+  billerReferences, // From UnionbankUpayService
+  [{ index: 1, value: 'John' }, { index: 2, value: '123456789' }]
+);
+
+if (!result.isValid) {
+  throw new ReferenceValidationException(result.errors);
+}
 ```
 
 ### Account Inquiry Service
