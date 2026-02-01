@@ -8,6 +8,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UnionbankConfigType } from '../../../config/unionbank.config';
+import { normalizeMobileInfo } from '../../../common/utils';
 import {
   createUpayRedirectUrl,
   encryptUpayRedirectPayload,
@@ -73,13 +74,19 @@ export class UnionbankUpayRedirectService {
     const now = new Date();
     const tranRequestDate = now.toISOString().replace('Z', '');
 
+    // Normalize country code (defaults to PH 63) and mobile number (supports DITO +63 8)
+    const mobileInfo = normalizeMobileInfo(
+      params.mobileNumber,
+      params.countryCode,
+    );
+
     const payload: UpayRedirectPayload = {
       senderRefId: params.senderRefId,
       tranRequestDate,
       emailAddress: params.emailAddress,
-      ...(params.countryCode != null &&
-        params.countryCode !== '' && { countryCode: params.countryCode }),
-      mobileNumber: params.mobileNumber,
+      // Always include countryCode (normalized, defaults to '63' per UPay docs)
+      countryCode: mobileInfo.countryCode,
+      mobileNumber: mobileInfo.mobileNumber,
       amount: params.amount,
       paymentMethod: params.paymentMethod ?? 'paygate',
       skipWhitelabelPage: params.skipWhitelabelPage ? 'true' : 'false',

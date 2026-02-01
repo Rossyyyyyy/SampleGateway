@@ -95,8 +95,8 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 - [X] **Payment method validation**
   - **Goal**: validate payment method against enabled/availed channels per biller (requires biller details lookup)
   - **Implemented**: `PaymentMethodValidationService` used in `UpayService.createTransaction` and `createDebitCreditCardTransaction`.
-- [ ] **Country code handling**
+- [X] **Country code handling**
   - **Goal**: default to PH (63) if invalid/missing (per PDF)
-- [ ] **DITO number support**
+- [X] **DITO number support**
   - **Goal**: explicit support for +63 8 numbers (per PDF line 156)
   - **Note**: current `mobileNumber` validation allows 10–13 digits; confirm whether additional normalization is needed.

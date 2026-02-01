@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { generateTransactionReference } from '../../common/utils/reference-generator.util';
+import {
+  generateTransactionReference,
+  normalizeMobileInfo,
+} from '../../common/utils';
 import {
   ReferenceValidationException,
   PaymentMethodValidationException,
@@ -61,12 +64,17 @@ export class UpayService {
       );
     }
 
+    // Normalize country code and mobile number
+    // - Defaults country code to PH (63) if invalid/missing
+    // - Supports DITO numbers (+63 8)
+    const mobileInfo = normalizeMobileInfo(dto.mobileNumber, dto.countryCode);
+
     const params: CreateUpayTransactionParams = {
       senderRefId,
       billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
-      countryCode: dto.countryCode,
-      mobileNumber: dto.mobileNumber,
+      countryCode: mobileInfo.countryCode,
+      mobileNumber: mobileInfo.mobileNumber,
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
@@ -122,12 +130,17 @@ export class UpayService {
     // Validate debit/credit payment method is enabled for this biller
     await this.validatePaymentMethod(dto.billerUuid, 'debit/credit', requestId);
 
+    // Normalize country code and mobile number
+    // - Defaults country code to PH (63) if invalid/missing
+    // - Supports DITO numbers (+63 8)
+    const mobileInfo = normalizeMobileInfo(dto.mobileNumber, dto.countryCode);
+
     const params: Omit<CreateUpayTransactionParams, 'paymentMethod'> = {
       senderRefId,
       billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
-      countryCode: dto.countryCode,
-      mobileNumber: dto.mobileNumber,
+      countryCode: mobileInfo.countryCode,
+      mobileNumber: mobileInfo.mobileNumber,
       amount: dto.amount,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
       callbackUrl: dto.callbackUrl,

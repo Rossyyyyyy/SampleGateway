@@ -394,6 +394,29 @@ If validation fails, the API returns a `400 Bad Request` with a `ERR_PAYMENT_MET
 ```
 
 
+## Mobile Number & Country Code Normalization
+
+The gateway automatically normalizes country codes and mobile numbers to ensure compatibility with UnionBank's requirements and to support modern networks like DITO.
+
+### Country Code Handling
+
+- **Default**: If `countryCode` is missing, invalid, or empty, it defaults to **`63`** (Philippines).
+- **Format**: The gateway strips any leading `+` sign. Only numeric strings between 1 and 4 digits are accepted as valid country codes.
+
+### Mobile Number Normalization
+
+The gateway cleans mobile numbers before sending them to UnionBank:
+- **Leading Zeros**: Automatically strips leading `0` from 11-digit Philippine numbers (e.g., `0917...` → `917...`).
+- **Country Code Inclusion**: Handles inputs that include the country code (e.g., `+63917...` → `917...`).
+- **DITO Support**: Explicitly supports DITO Telecommunity numbers (prefix **`8`** after country code, e.g., `0894...` → `894...`).
+- **Cleaning**: Removes all non-digit characters (spaces, dashes, etc.).
+
+### Validation
+
+Validation is applied post-normalization:
+- **length**: 10 digits for Philippine numbers.
+- **prefix**: Must start with **`9`** (traditional telcos) or **`8`** (DITO).
+
 ## Registration / Wiring
 
 This feature is enabled by:
