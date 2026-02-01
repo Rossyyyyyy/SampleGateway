@@ -92,8 +92,9 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 - [X] **Reference validation**
   - **Goal**: dynamic validation based on biller reference definitions (per YAML)
   - **Approach**: fetch biller references, then validate request `references[]` against min/max/required/pattern
-- [ ] **Payment method validation**
+- [X] **Payment method validation**
   - **Goal**: validate payment method against enabled/availed channels per biller (requires biller details lookup)
+  - **Implemented**: `PaymentMethodValidationService` used in `UpayService.createTransaction` and `createDebitCreditCardTransaction`.
 - [ ] **Country code handling**
   - **Goal**: default to PH (63) if invalid/missing (per PDF)
 - [ ] **DITO number support**

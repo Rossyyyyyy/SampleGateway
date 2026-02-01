@@ -77,13 +77,15 @@ export class UnionbankUpayRedirectService {
       senderRefId: params.senderRefId,
       tranRequestDate,
       emailAddress: params.emailAddress,
-      ...(params.countryCode != null && params.countryCode !== '' && { countryCode: params.countryCode }),
+      ...(params.countryCode != null &&
+        params.countryCode !== '' && { countryCode: params.countryCode }),
       mobileNumber: params.mobileNumber,
       amount: params.amount,
       paymentMethod: params.paymentMethod ?? 'paygate',
       skipWhitelabelPage: params.skipWhitelabelPage ? 'true' : 'false',
       callbackUrl: params.callbackUrl,
-      ...(params.backRedir != null && params.backRedir !== '' && { backRedir: params.backRedir }),
+      ...(params.backRedir != null &&
+        params.backRedir !== '' && { backRedir: params.backRedir }),
       references: [
         { index: 1, value: params.firstName },
         { index: 2, value: params.accountNumber ?? '' },

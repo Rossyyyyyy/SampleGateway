@@ -215,6 +215,37 @@ if (!result.isValid) {
 }
 ```
 
+### Payment Method Validation Service
+
+Validates that a requested payment method is enabled and availed by the biller.
+
+**Service**: `PaymentMethodValidationService`
+
+**Methods**:
+
+- `validatePaymentMethod()`: Validates a payment method against a biller's channels (using raw API response)
+- `validateAgainstBillerChannels()`: Validates against a specific biller object
+
+**Validations Performed**:
+
+- **Existence**: Checks if the method is configured for the biller
+- **Enabled Status**: Verifies `isEnabled` is true
+- **Availed Status**: Verifies `isAvailed` is true
+
+**Example**:
+
+```typescript
+const result = paymentMethodValidationService.validatePaymentMethod(
+  billerDetails, // From UnionbankUpayService.getBillerDetails
+  'instapay'
+);
+
+if (!result.isValid) {
+  throw new PaymentMethodValidationException(result.error);
+}
+```
+
+
 ### Account Inquiry Service
 
 Validates and retrieves account information.

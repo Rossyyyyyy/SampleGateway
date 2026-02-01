@@ -368,6 +368,7 @@ Common error codes:
 - `TRANSFER_LIMIT_EXCEEDED`: Transfer amount exceeds limit
 - `RATE_LIMIT_EXCEEDED`: Too many requests
 - `ERR_REFERENCE_VALIDATION`: UPay transaction reference validation failed
+- `ERR_PAYMENT_METHOD_VALIDATION`: UPay transaction payment method validation failed
 
 ## Rate Limiting
 

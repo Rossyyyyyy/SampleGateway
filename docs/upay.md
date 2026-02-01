@@ -355,6 +355,45 @@ If validation fails, the API returns a `400 Bad Request` with a `ERR_REFERENCE_V
 }
 ```
 
+## Payment Method Validation
+
+The gateway validates the requested `paymentMethod` against the biller's enabled and availed channels before proceeding with the transaction.
+
+### How it Works
+
+1.  When creating a transaction, the gateway fetches the biller's details (via `GET /billers/{billerUuid}`).
+2.  It extracts the `paymentChannels` list, which contains available methods (e.g., `UB ONLINE`, `INSTAPAY`, `GCASH`).
+3.  The gateway maps the requested `paymentMethod` (e.g., `instapay`) to the possible channel codes used by UnionBank.
+4.  It verifies that the channel:
+    *   **Exists**: Is configured for the biller.
+    *   **Is Enabled**: Has `isEnabled: true`.
+    *   **Is Availed**: Has `isAvailed: true`.
+5.  If any condition fails, the request is rejected with a descriptive error.
+
+### Error Response
+
+If validation fails, the API returns a `400 Bad Request` with a `ERR_PAYMENT_METHOD_VALIDATION` code.
+
+**Response** (400):
+
+```json
+{
+  "code": "ERR_PAYMENT_METHOD_VALIDATION",
+  "message": "Payment method 'gcash' is not enabled for biller CITY GOVERNMENT OF TUGUEGARAO",
+  "details": {
+    "requestedMethod": "gcash",
+    "availableMethods": [
+      "UB ONLINE",
+      "INSTAPAY",
+      "PAYGATE"
+    ],
+    "errorCode": "METHOD_NOT_ENABLED"
+  },
+  "timestamp": "2024-03-20T10:00:00.000Z"
+}
+```
+
+
 ## Registration / Wiring
 
 This feature is enabled by:

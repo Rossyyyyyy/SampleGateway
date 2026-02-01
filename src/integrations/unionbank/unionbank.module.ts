@@ -7,7 +7,10 @@ import {
   UnionbankUpayService,
   UnionbankUpayRedirectService,
 } from './services';
-import { ReferenceValidationService } from './validators';
+import {
+  ReferenceValidationService,
+  PaymentMethodValidationService,
+} from './validators';
 
 @Module({
   providers: [
@@ -19,6 +22,7 @@ import { ReferenceValidationService } from './validators';
     UnionbankUpayService,
     UnionbankUpayRedirectService,
     ReferenceValidationService,
+    PaymentMethodValidationService,
   ],
   exports: [
     UnionbankInstapayService,
@@ -27,6 +31,7 @@ import { ReferenceValidationService } from './validators';
     UnionbankUpayService,
     UnionbankUpayRedirectService,
     ReferenceValidationService,
+    PaymentMethodValidationService,
   ],
 })
 export class UnionbankModule {}

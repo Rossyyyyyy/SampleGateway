@@ -30,6 +30,9 @@ export const ErrorCodes = {
 
   // Reference validation errors
   REFERENCE_VALIDATION_ERROR: 'ERR_REFERENCE_VALIDATION',
+
+  // Payment method validation errors
+  PAYMENT_METHOD_VALIDATION_ERROR: 'ERR_PAYMENT_METHOD_VALIDATION',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

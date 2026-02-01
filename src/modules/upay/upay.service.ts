@@ -1,8 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { generateTransactionReference } from '../../common/utils/reference-generator.util';
-import { ReferenceValidationException } from '../../common/exceptions';
+import {
+  ReferenceValidationException,
+  PaymentMethodValidationException,
+} from '../../common/exceptions';
 import { UnionbankUpayService } from '../../integrations/unionbank';
-import { ReferenceValidationService } from '../../integrations/unionbank/validators';
+import {
+  ReferenceValidationService,
+  PaymentMethodValidationService,
+} from '../../integrations/unionbank/validators';
 import { CreateUpayTransactionParams } from '../../integrations/unionbank/dto/request/upay-transaction.request.dto';
 import {
   CreateUpayDebitCreditCardTransactionDto,
@@ -23,10 +29,11 @@ export class UpayService {
   constructor(
     private readonly unionbankUpayService: UnionbankUpayService,
     private readonly referenceValidationService: ReferenceValidationService,
+    private readonly paymentMethodValidationService: PaymentMethodValidationService,
   ) {}
 
   /**
-   * Create a UPay transaction with reference validation
+   * Create a UPay transaction with reference and payment method validation
    */
   async createTransaction(
     dto: CreateUpayTransactionDto,
@@ -44,6 +51,15 @@ export class UpayService {
       references,
       requestId,
     );
+
+    // Validate payment method if provided
+    if (dto.paymentMethod) {
+      await this.validatePaymentMethod(
+        dto.billerUuid,
+        dto.paymentMethod,
+        requestId,
+      );
+    }
 
     const params: CreateUpayTransactionParams = {
       senderRefId,
@@ -82,7 +98,7 @@ export class UpayService {
   }
 
   /**
-   * Create a debit/credit card transaction
+   * Create a debit/credit card transaction with reference and payment method validation
    */
   async createDebitCreditCardTransaction(
     dto: CreateUpayDebitCreditCardTransactionDto,
@@ -92,6 +108,19 @@ export class UpayService {
     this.logger.log(
       `Creating UPay debit/credit card transaction: ${senderRefId}`,
     );
+
+    // Build references from DTO for validation
+    const references = this.buildReferencesForValidation(dto);
+
+    // Validate references against biller definitions
+    await this.validateTransactionReferences(
+      dto.billerUuid,
+      references,
+      requestId,
+    );
+
+    // Validate debit/credit payment method is enabled for this biller
+    await this.validatePaymentMethod(dto.billerUuid, 'debit/credit', requestId);
 
     const params: Omit<CreateUpayTransactionParams, 'paymentMethod'> = {
       senderRefId,
@@ -337,5 +366,48 @@ export class UpayService {
     }
 
     this.logger.debug(`Reference validation passed for biller: ${billerUuid}`);
+  }
+
+  /**
+   * Validates a payment method against the biller's enabled/availed channels.
+   * Fetches biller details and validates the payment method is available.
+   *
+   * @param billerUuid - Biller UUID
+   * @param paymentMethod - Payment method to validate (e.g., 'instapay', 'ub online')
+   * @param requestId - Optional request ID for logging
+   * @throws PaymentMethodValidationException if payment method is not valid
+   */
+  private async validatePaymentMethod(
+    billerUuid: string,
+    paymentMethod: string,
+    requestId?: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `Validating payment method '${paymentMethod}' for biller: ${billerUuid}`,
+    );
+
+    // Fetch biller details including payment channels
+    const billerDetails = await this.unionbankUpayService.getBillerDetails(
+      billerUuid,
+      requestId,
+    );
+
+    // Validate payment method against biller's channels
+    const validationResult =
+      this.paymentMethodValidationService.validatePaymentMethod(
+        billerDetails,
+        paymentMethod,
+      );
+
+    if (!validationResult.isValid && validationResult.error) {
+      this.logger.warn(
+        `Payment method validation failed for biller ${billerUuid}: ${validationResult.error.message}`,
+      );
+      throw new PaymentMethodValidationException(validationResult.error);
+    }
+
+    this.logger.debug(
+      `Payment method '${paymentMethod}' validated successfully for biller: ${billerUuid}`,
+    );
   }
 }

@@ -71,6 +71,20 @@ npm run test:e2e
 
 Runs end-to-end tests using the configuration in `test/jest-e2e.json`.
 
+### Run Specific Validation Tests
+
+To run the Reference Validation tests:
+
+```bash
+pnpm test reference-validation
+```
+
+To run the Payment Method Validation tests:
+
+```bash
+pnpm test payment-method-validation
+```
+
 ## Manual UPay Test Script
 
 The project includes a manual test script for testing UPay integration directly.
