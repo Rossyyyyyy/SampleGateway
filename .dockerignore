@@ -1,0 +1,77 @@
+# ====================================
+# Docker Build Context Exclusions
+# ====================================
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+build
+coverage
+
+# Environment files (use docker --env-file or compose env_file)
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Testing
+__tests__
+__mocks__
+*.test.ts
+*.spec.ts
+jest.config.js
+test
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.docker
+
+# Scripts (not needed in container)
+scripts/*.sh
+scripts/*.ps1
+scripts/*.fish
+
+# Miscellaneous
+.prettierrc
+.eslintrc*
+eslint.config.*
+tsconfig*.json
+nest-cli.json
+
+# Backups
+backups
+*.bak
+
+# Local development
+.husky
+.turbo
