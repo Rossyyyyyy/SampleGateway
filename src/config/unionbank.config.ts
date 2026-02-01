@@ -62,7 +62,8 @@ export const unionbankConfig = registerAs(
       (parseUnionbankEnv(process.env.UNIONBANK_ENV) === 'sandbox'
         ? '/partners/sb/partners/v1/oauth2/token'
         : '/ubp/uat/partners/v1/oauth2/token'),
-    upayAutopostWebhookSecret: process.env.UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET ?? '',
+    upayAutopostWebhookSecret:
+      process.env.UNIONBANK_UPAY_AUTOPOST_WEBHOOK_SECRET ?? '',
     upayEndpoint:
       process.env.UNIONBANK_UPAY_ENDPOINT ??
       '/ubp/external/upay/payments/v1/transactions',

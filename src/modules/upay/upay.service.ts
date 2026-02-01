@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { generateTransactionReference } from '../../common/utils/reference-generator.util';
+import { ReferenceValidationException } from '../../common/exceptions';
 import { UnionbankUpayService } from '../../integrations/unionbank';
+import { ReferenceValidationService } from '../../integrations/unionbank/validators';
 import { CreateUpayTransactionParams } from '../../integrations/unionbank/dto/request/upay-transaction.request.dto';
 import {
   CreateUpayDebitCreditCardTransactionDto,
@@ -18,10 +20,13 @@ import {
 export class UpayService {
   private readonly logger = new Logger(UpayService.name);
 
-  constructor(private readonly unionbankUpayService: UnionbankUpayService) {}
+  constructor(
+    private readonly unionbankUpayService: UnionbankUpayService,
+    private readonly referenceValidationService: ReferenceValidationService,
+  ) {}
 
   /**
-   * Create a UPay transaction
+   * Create a UPay transaction with reference validation
    */
   async createTransaction(
     dto: CreateUpayTransactionDto,
@@ -29,6 +34,16 @@ export class UpayService {
   ): Promise<UpayTransactionResponseDto> {
     const senderRefId = generateTransactionReference();
     this.logger.log(`Creating UPay transaction: ${senderRefId}`);
+
+    // Build references from DTO for validation
+    const references = this.buildReferencesForValidation(dto);
+
+    // Validate references against biller definitions
+    await this.validateTransactionReferences(
+      dto.billerUuid,
+      references,
+      requestId,
+    );
 
     const params: CreateUpayTransactionParams = {
       senderRefId,
@@ -233,5 +248,94 @@ export class UpayService {
       records: response.records,
       record: response.record,
     };
+  }
+
+  /**
+   * Builds the references array for validation from DTO fields.
+   * Maps standard DTO fields to their corresponding reference indices.
+   *
+   * @param dto - Transaction DTO with reference fields
+   * @returns Array of reference inputs for validation
+   */
+  private buildReferencesForValidation(
+    dto: CreateUpayTransactionDto | CreateUpayDebitCreditCardTransactionDto,
+  ): Array<{ index: number | string; value: string }> {
+    const references: Array<{ index: number | string; value: string }> = [];
+
+    // Map standard DTO fields to reference indices
+    // Index mapping based on typical UPay biller configuration:
+    // 1 = First Name, 2 = Account Number, 3 = User Ref, 4 = Last Name, 5 = Additional Ref
+    if (dto.firstName) {
+      references.push({ index: 1, value: dto.firstName });
+    }
+    if (dto.accountNumber !== undefined) {
+      references.push({ index: 2, value: dto.accountNumber ?? '' });
+    }
+    if (dto.userRef !== undefined) {
+      references.push({ index: 3, value: dto.userRef ?? '' });
+    }
+    if (dto.lastName) {
+      references.push({ index: 4, value: dto.lastName });
+    }
+    // Index 5 is typically also firstName (as per createUpayTransactionRequest)
+    if (dto.firstName) {
+      references.push({ index: 5, value: dto.firstName });
+    }
+
+    // Include custom references from DTO if provided
+    if ('references' in dto && dto.references) {
+      for (const ref of dto.references) {
+        // Skip if already added by standard fields
+        const exists = references.some(
+          (r) => String(r.index) === String(ref.index),
+        );
+        if (!exists) {
+          references.push({ index: ref.index, value: ref.value });
+        }
+      }
+    }
+
+    return references;
+  }
+
+  /**
+   * Validates transaction references against biller definitions.
+   * Fetches biller reference definitions and validates the provided references.
+   *
+   * @param billerUuid - Biller UUID
+   * @param references - References to validate
+   * @param requestId - Optional request ID for logging
+   * @throws ReferenceValidationException if validation fails
+   */
+  private async validateTransactionReferences(
+    billerUuid: string,
+    references: Array<{ index: number | string; value: string }>,
+    requestId?: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `Validating ${references.length} references for biller: ${billerUuid}`,
+    );
+
+    // Fetch biller reference definitions
+    const billerReferences =
+      await this.unionbankUpayService.getBillerReferences(
+        billerUuid,
+        requestId,
+      );
+
+    // Validate references
+    const validationResult = this.referenceValidationService.validateReferences(
+      billerReferences.references ?? [],
+      references,
+    );
+
+    if (!validationResult.isValid) {
+      this.logger.warn(
+        `Reference validation failed for biller ${billerUuid}: ${validationResult.errors.length} errors`,
+      );
+      throw new ReferenceValidationException([...validationResult.errors]);
+    }
+
+    this.logger.debug(`Reference validation passed for biller: ${billerUuid}`);
   }
 }

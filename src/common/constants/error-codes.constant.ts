@@ -27,6 +27,9 @@ export const ErrorCodes = {
 
   // Idempotency errors
   DUPLICATE_REQUEST: 'ERR_DUPLICATE_REQUEST',
+
+  // Reference validation errors
+  REFERENCE_VALIDATION_ERROR: 'ERR_REFERENCE_VALIDATION',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
