@@ -1,6 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { generateTransactionReference } from '../../common/utils/reference-generator.util';
+import {
+  generateTransactionReference,
+  normalizeMobileInfo,
+} from '../../common/utils';
+import {
+  ReferenceValidationException,
+  PaymentMethodValidationException,
+} from '../../common/exceptions';
 import { UnionbankUpayService } from '../../integrations/unionbank';
+import {
+  ReferenceValidationService,
+  PaymentMethodValidationService,
+} from '../../integrations/unionbank/validators';
 import { CreateUpayTransactionParams } from '../../integrations/unionbank/dto/request/upay-transaction.request.dto';
 import {
   CreateUpayDebitCreditCardTransactionDto,
@@ -18,10 +29,14 @@ import {
 export class UpayService {
   private readonly logger = new Logger(UpayService.name);
 
-  constructor(private readonly unionbankUpayService: UnionbankUpayService) {}
+  constructor(
+    private readonly unionbankUpayService: UnionbankUpayService,
+    private readonly referenceValidationService: ReferenceValidationService,
+    private readonly paymentMethodValidationService: PaymentMethodValidationService,
+  ) {}
 
   /**
-   * Create a UPay transaction
+   * Create a UPay transaction with reference and payment method validation
    */
   async createTransaction(
     dto: CreateUpayTransactionDto,
@@ -30,12 +45,36 @@ export class UpayService {
     const senderRefId = generateTransactionReference();
     this.logger.log(`Creating UPay transaction: ${senderRefId}`);
 
+    // Build references from DTO for validation
+    const references = this.buildReferencesForValidation(dto);
+
+    // Validate references against biller definitions
+    await this.validateTransactionReferences(
+      dto.billerUuid,
+      references,
+      requestId,
+    );
+
+    // Validate payment method if provided
+    if (dto.paymentMethod) {
+      await this.validatePaymentMethod(
+        dto.billerUuid,
+        dto.paymentMethod,
+        requestId,
+      );
+    }
+
+    // Normalize country code and mobile number
+    // - Defaults country code to PH (63) if invalid/missing
+    // - Supports DITO numbers (+63 8)
+    const mobileInfo = normalizeMobileInfo(dto.mobileNumber, dto.countryCode);
+
     const params: CreateUpayTransactionParams = {
       senderRefId,
       billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
-      countryCode: dto.countryCode,
-      mobileNumber: dto.mobileNumber,
+      countryCode: mobileInfo.countryCode,
+      mobileNumber: mobileInfo.mobileNumber,
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
@@ -67,7 +106,7 @@ export class UpayService {
   }
 
   /**
-   * Create a debit/credit card transaction
+   * Create a debit/credit card transaction with reference and payment method validation
    */
   async createDebitCreditCardTransaction(
     dto: CreateUpayDebitCreditCardTransactionDto,
@@ -78,12 +117,30 @@ export class UpayService {
       `Creating UPay debit/credit card transaction: ${senderRefId}`,
     );
 
+    // Build references from DTO for validation
+    const references = this.buildReferencesForValidation(dto);
+
+    // Validate references against biller definitions
+    await this.validateTransactionReferences(
+      dto.billerUuid,
+      references,
+      requestId,
+    );
+
+    // Validate debit/credit payment method is enabled for this biller
+    await this.validatePaymentMethod(dto.billerUuid, 'debit/credit', requestId);
+
+    // Normalize country code and mobile number
+    // - Defaults country code to PH (63) if invalid/missing
+    // - Supports DITO numbers (+63 8)
+    const mobileInfo = normalizeMobileInfo(dto.mobileNumber, dto.countryCode);
+
     const params: Omit<CreateUpayTransactionParams, 'paymentMethod'> = {
       senderRefId,
       billerUuid: dto.billerUuid,
       emailAddress: dto.emailAddress,
-      countryCode: dto.countryCode,
-      mobileNumber: dto.mobileNumber,
+      countryCode: mobileInfo.countryCode,
+      mobileNumber: mobileInfo.mobileNumber,
       amount: dto.amount,
       skipWhitelabelPage: dto.skipWhitelabelPage ?? false,
       callbackUrl: dto.callbackUrl,
@@ -233,5 +290,137 @@ export class UpayService {
       records: response.records,
       record: response.record,
     };
+  }
+
+  /**
+   * Builds the references array for validation from DTO fields.
+   * Maps standard DTO fields to their corresponding reference indices.
+   *
+   * @param dto - Transaction DTO with reference fields
+   * @returns Array of reference inputs for validation
+   */
+  private buildReferencesForValidation(
+    dto: CreateUpayTransactionDto | CreateUpayDebitCreditCardTransactionDto,
+  ): Array<{ index: number | string; value: string }> {
+    const references: Array<{ index: number | string; value: string }> = [];
+
+    // Map standard DTO fields to reference indices
+    // Index mapping based on typical UPay biller configuration:
+    // 1 = First Name, 2 = Account Number, 3 = User Ref, 4 = Last Name, 5 = First Name (Repeat)
+    if (dto.firstName) {
+      references.push({ index: 1, value: dto.firstName });
+    }
+    if (dto.accountNumber !== undefined) {
+      references.push({ index: 2, value: dto.accountNumber ?? '' });
+    }
+    if (dto.userRef !== undefined) {
+      references.push({ index: 3, value: dto.userRef ?? '' });
+    }
+    if (dto.lastName) {
+      references.push({ index: 4, value: dto.lastName });
+    }
+    // Index 5 is typically also firstName (as per createUpayTransactionRequest)
+    if (dto.firstName) {
+      references.push({ index: 5, value: dto.firstName });
+    }
+
+    // Include custom references from DTO if provided
+    if ('references' in dto && dto.references) {
+      for (const ref of dto.references) {
+        // Skip if already added by standard fields
+        const exists = references.some(
+          (r) => String(r.index) === String(ref.index),
+        );
+        if (!exists) {
+          references.push({ index: ref.index, value: ref.value });
+        }
+      }
+    }
+
+    return references;
+  }
+
+  /**
+   * Validates transaction references against biller definitions.
+   * Fetches biller reference definitions and validates the provided references.
+   *
+   * @param billerUuid - Biller UUID
+   * @param references - References to validate
+   * @param requestId - Optional request ID for logging
+   * @throws ReferenceValidationException if validation fails
+   */
+  private async validateTransactionReferences(
+    billerUuid: string,
+    references: Array<{ index: number | string; value: string }>,
+    requestId?: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `Validating ${references.length} references for biller: ${billerUuid}`,
+    );
+
+    // Fetch biller reference definitions
+    const billerReferences =
+      await this.unionbankUpayService.getBillerReferences(
+        billerUuid,
+        requestId,
+      );
+
+    // Validate references
+    const validationResult = this.referenceValidationService.validateReferences(
+      billerReferences.references ?? [],
+      references,
+    );
+
+    if (!validationResult.isValid) {
+      this.logger.warn(
+        `Reference validation failed for biller ${billerUuid}: ${validationResult.errors.length} errors`,
+      );
+      throw new ReferenceValidationException([...validationResult.errors]);
+    }
+
+    this.logger.debug(`Reference validation passed for biller: ${billerUuid}`);
+  }
+
+  /**
+   * Validates a payment method against the biller's enabled/availed channels.
+   * Fetches biller details and validates the payment method is available.
+   *
+   * @param billerUuid - Biller UUID
+   * @param paymentMethod - Payment method to validate (e.g., 'instapay', 'ub online')
+   * @param requestId - Optional request ID for logging
+   * @throws PaymentMethodValidationException if payment method is not valid
+   */
+  private async validatePaymentMethod(
+    billerUuid: string,
+    paymentMethod: string,
+    requestId?: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `Validating payment method '${paymentMethod}' for biller: ${billerUuid}`,
+    );
+
+    // Fetch biller details including payment channels
+    const billerDetails = await this.unionbankUpayService.getBillerDetails(
+      billerUuid,
+      requestId,
+    );
+
+    // Validate payment method against biller's channels
+    const validationResult =
+      this.paymentMethodValidationService.validatePaymentMethod(
+        billerDetails,
+        paymentMethod,
+      );
+
+    if (!validationResult.isValid && validationResult.error) {
+      this.logger.warn(
+        `Payment method validation failed for biller ${billerUuid}: ${validationResult.error.message}`,
+      );
+      throw new PaymentMethodValidationException(validationResult.error);
+    }
+
+    this.logger.debug(
+      `Payment method '${paymentMethod}' validated successfully for biller: ${billerUuid}`,
+    );
   }
 }

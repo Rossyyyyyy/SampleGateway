@@ -61,7 +61,9 @@ export class UnionbankAutopostPayloadDto {
   @IsString()
   paymentMethod?: string;
 
-  @ApiPropertyOptional({ description: 'Biller post status (if provided by UB)' })
+  @ApiPropertyOptional({
+    description: 'Biller post status (if provided by UB)',
+  })
   @IsOptional()
   @IsString()
   billerPostStatus?: string;

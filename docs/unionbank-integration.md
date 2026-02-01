@@ -68,6 +68,7 @@ Handles payment processing via UnionBank's uPay service.
 - `createTransaction()`: Create uPay transaction (Direct API)
 - `createDebitCreditCardTransaction()`: Create debit/credit card payment transaction
 - `getTransactionStatus()`: Get transaction status
+- `getBillerReferences()`: Fetch reference definitions for a biller
 
 #### Payment Methods
 
@@ -182,6 +183,68 @@ const redirectUrl = await upayRedirectService.createRedirectUrl({
 
 // Redirect user to redirectUrl
 ```
+
+### Reference Validation Service
+
+Provides dynamic validation for UPay transaction references based on biller-defined rules.
+
+**Service**: `ReferenceValidationService`
+
+**Methods**:
+
+- `validateReferences()`: Validates an array of references against biller definitions
+- `validateReferencesFromResponse()`: Helper to validate using a raw biller references API response
+
+**Validations Performed**:
+
+- **Required Fields**: Ensures mandatory references are present
+- **Length Constraints**: Validates `minCharLength` and `maxCharLength`
+- **Field Types**: Validates `NUMERIC`, `ALPHABETIC`, or `ALPHANUMERIC` constraints
+- **Pattern Matching**: Validates specific formats like `Email`, `Simple`, etc.
+
+**Example**:
+
+```typescript
+const result = validationService.validateReferences(
+  billerReferences, // From UnionbankUpayService
+  [{ index: 1, value: 'John' }, { index: 2, value: '123456789' }]
+);
+
+if (!result.isValid) {
+  throw new ReferenceValidationException(result.errors);
+}
+```
+
+### Payment Method Validation Service
+
+Validates that a requested payment method is enabled and availed by the biller.
+
+**Service**: `PaymentMethodValidationService`
+
+**Methods**:
+
+- `validatePaymentMethod()`: Validates a payment method against a biller's channels (using raw API response)
+- `validateAgainstBillerChannels()`: Validates against a specific biller object
+
+**Validations Performed**:
+
+- **Existence**: Checks if the method is configured for the biller
+- **Enabled Status**: Verifies `isEnabled` is true
+- **Availed Status**: Verifies `isAvailed` is true
+
+**Example**:
+
+```typescript
+const result = paymentMethodValidationService.validatePaymentMethod(
+  billerDetails, // From UnionbankUpayService.getBillerDetails
+  'instapay'
+);
+
+if (!result.isValid) {
+  throw new PaymentMethodValidationException(result.error);
+}
+```
+
 
 ### Account Inquiry Service
 

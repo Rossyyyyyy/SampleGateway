@@ -76,6 +76,8 @@ common/
 │   ├── base.exception.ts         # Base exception class
 │   ├── transaction.exception.ts  # Transaction-related exceptions
 │   ├── unionbank-api.exception.ts # UnionBank API exceptions
+│   ├── reference-validation.exception.ts # Reference validation exceptions
+│   ├── payment-method-validation.exception.ts # Payment method validation exceptions
 │   └── index.ts
 ├── filters/                      # Exception filters
 │   ├── all-exceptions.filter.ts  # Global exception filter
@@ -205,6 +207,13 @@ integrations/
 │   ├── utils/                    # Utility functions
 │   │   ├── upay-redirect-encryption.util.ts  # uPay encryption utilities
 │   │   ├── upay-redirect-encryption.util.spec.ts # Tests
+│   │   └── index.ts
+│   ├── validators/               # Validation services
+│   │   ├── reference-validation.service.ts    # Biller reference validation
+│   │   ├── reference-validation.types.ts      # Reference validation types
+│   │   ├── payment-method-validation.service.ts # Payment channel validation
+│   │   ├── payment-method-validation.types.ts   # Payment method mapping and types
+│   │   ├── payment-method-validation.service.spec.ts # Tests
 │   │   └── index.ts
 │   ├── unionbank.module.ts       # UnionBank module
 │   └── index.ts                  # Public exports

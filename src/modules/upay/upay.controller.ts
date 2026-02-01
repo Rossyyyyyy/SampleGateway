@@ -194,9 +194,8 @@ export class UpayController {
   async getBillerUuidStatus(
     @Param('billerUuid') billerUuid: string,
   ): Promise<UpayBillerUuidStatusResponseDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call -- UpayService is correctly typed; lint resolution fails across module boundary
     const result = await this.upayService.getBillerUuidStatus(billerUuid);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- result is UpayBillerUuidStatusResponseDto from service
+
     return result;
   }
 }

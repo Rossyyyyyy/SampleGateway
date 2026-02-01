@@ -89,13 +89,14 @@ This file tracks **remaining UPay gaps** to address in a future pass. Items are 
 
 ## Missing validation/features
 
-- [ ] **Reference validation**
+- [X] **Reference validation**
   - **Goal**: dynamic validation based on biller reference definitions (per YAML)
   - **Approach**: fetch biller references, then validate request `references[]` against min/max/required/pattern
-- [ ] **Payment method validation**
+- [X] **Payment method validation**
   - **Goal**: validate payment method against enabled/availed channels per biller (requires biller details lookup)
-- [ ] **Country code handling**
+  - **Implemented**: `PaymentMethodValidationService` used in `UpayService.createTransaction` and `createDebitCreditCardTransaction`.
+- [X] **Country code handling**
   - **Goal**: default to PH (63) if invalid/missing (per PDF)
-- [ ] **DITO number support**
+- [X] **DITO number support**
   - **Goal**: explicit support for +63 8 numbers (per PDF line 156)
   - **Note**: current `mobileNumber` validation allows 10–13 digits; confirm whether additional normalization is needed.

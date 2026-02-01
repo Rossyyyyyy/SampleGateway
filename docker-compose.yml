@@ -1,0 +1,166 @@
+# ====================================
+# InspireWallet Gateway - Development
+# Docker Compose Configuration
+# ====================================
+# Supports: macOS, Windows, Linux (including Arch)
+#
+# Usage:
+#   docker compose up -d          # Start all services
+#   docker compose down           # Stop all services
+#   docker compose logs -f app    # View app logs
+#   docker compose exec app sh    # Shell into container
+
+name: inspirewallet-gateway-dev
+
+services:
+  # ---- NestJS Application ----
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: inspirewallet-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+      - "9229:9229"  # Debug port
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inspirewallet?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - inspirewallet-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ---- PostgreSQL Database ----
+  postgres:
+    image: postgres:16-alpine
+    container_name: inspirewallet-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-inspirewallet}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - inspirewallet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inspirewallet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---- Redis Cache ----
+  redis:
+    image: redis:7-alpine
+    container_name: inspirewallet-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - inspirewallet-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---- Redis Commander (Dev Tool) ----
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: inspirewallet-redis-commander
+    restart: unless-stopped
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - inspirewallet-network
+    profiles:
+      - tools
+
+  # ---- pgAdmin (Dev Tool) ----
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: inspirewallet-pgadmin
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-8082}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@inspirewallet.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - inspirewallet-network
+    profiles:
+      - tools
+
+  # ---- Prisma Studio (Dev Tool) ----
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: inspirewallet-prisma-studio
+    restart: unless-stopped
+    ports:
+      - "${PRISMA_STUDIO_PORT:-5555}:5555"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/inspirewallet?schema=public
+    command: pnpm prisma studio --port 5555 --browser none
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - inspirewallet-network
+    profiles:
+      - tools
+
+networks:
+  inspirewallet-network:
+    driver: bridge
+    name: inspirewallet-network
+
+volumes:
+  postgres_data:
+    name: inspirewallet-postgres-data
+  redis_data:
+    name: inspirewallet-redis-data
+  pgadmin_data:
+    name: inspirewallet-pgadmin-data

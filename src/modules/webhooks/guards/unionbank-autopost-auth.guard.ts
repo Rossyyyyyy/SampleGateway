@@ -17,17 +17,16 @@ export class UnionbankAutopostAuthGuard implements CanActivate {
     private readonly signatureService: SignatureService,
     private readonly configService: ConfigService,
   ) {}
-  
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    const secret = 
-      this.configService.get<UnionbankConfigType>('unionbank')
-        ?.upayAutopostWebhookSecret;
+    const secret =
+      this.configService.get<UnionbankConfigType>(
+        'unionbank',
+      )?.upayAutopostWebhookSecret;
 
     if (!secret) {
-      throw new UnauthorizedException(
-        'Autopost webhook secret not configured',
-      );
+      throw new UnauthorizedException('Autopost webhook secret not configured');
     }
 
     const signature = request.headers[BODY_SIGNATURE_HEADER] as string;

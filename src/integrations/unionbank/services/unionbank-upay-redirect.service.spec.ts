@@ -178,7 +178,9 @@ describe('UnionbankUpayRedirectService', () => {
 
       expect(() => {
         serviceWithoutUuid.createRedirectUrl(params);
-      }).toThrow('Biller UUID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_UUID.');
+      }).toThrow(
+        'Biller UUID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_UUID.',
+      );
     });
 
     it('should include all required fields in the payload', () => {

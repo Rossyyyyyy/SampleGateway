@@ -12,7 +12,7 @@ import {
   UnionbankAutopostPayloadDto,
   UnionbankAutopostResponseDto,
 } from './dto/unionbank-autopost.dto';
-import { UnionbankAutopostAuthGuard } from './guards/unionbank-autopost-auth.guard'; 
+import { UnionbankAutopostAuthGuard } from './guards/unionbank-autopost-auth.guard';
 import { WebhookPayloadDto, WebhookResponseDto } from './dto/webhook.dto';
 import { WebhooksService } from './webhooks.service';
 

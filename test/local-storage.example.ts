@@ -10,7 +10,10 @@
 
 import { LocalStorageService } from '../src/infrastructure/local-storage';
 import { DepositLocalRepository } from '../src/modules/deposits/repositories/deposit.local.repository';
-import { DepositType } from '../src/modules/deposits/entities/deposit.entity';
+import {
+  DepositType,
+  DepositStatus,
+} from '../src/modules/deposits/entities/deposit.entity';
 
 // Example interfaces for demonstration
 interface User {
@@ -168,7 +171,7 @@ async function depositRepositoryExample() {
   // Update status
   const updated = await depositRepo.updateStatus(
     deposit.id,
-    'COMPLETED' as any,
+    DepositStatus.COMPLETED,
     'Processing completed successfully',
   );
   console.log('Updated status:', updated?.status);
@@ -216,4 +219,4 @@ async function main() {
   }
 }
 
-main();
+void main();
