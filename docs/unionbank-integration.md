@@ -322,8 +322,19 @@ UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 # UPay Redirect / White Label (per UB UPay doc: BillerUuid string in API)
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-# Biller ID: integer provided by UnionBank, retained as string (e.g. "4446" or UUID string)
+
+# Biller ID: Integer ID provided by UnionBank during onboarding.
+# Used in UPay API calls to identify the biller/merchant.
+# Format: Numeric string (e.g., "4446")
 UNIONBANK_UPAY_BILLER_ID=your-biller-id
+
+# Account Number: Your UnionBank merchant/partner account number.
+# Format: Numeric string as provided by UnionBank (e.g., "1419")
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+
+# API List: Comma-separated list of subscribed UPay APIs.
+# Format: API product names from UnionBank marketplace.
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 ```
 
 ### AES Key Format
@@ -377,7 +388,7 @@ Note: the OAuth token request is `application/x-www-form-urlencoded` and does **
 
 ### Token Caching
 
-Access tokens are cached in Redis to avoid unnecessary token requests.
+Access tokens are cached in the local in-memory cache to avoid unnecessary token requests. The cache supports optional AES-256-GCM encryption for sensitive token data.
 
 ## API Client
 

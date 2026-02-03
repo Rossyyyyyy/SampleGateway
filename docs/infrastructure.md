@@ -6,11 +6,11 @@ The gateway uses various infrastructure components to support its operations, in
 
 Infrastructure components:
 
-- **Database**: PostgreSQL with Prisma ORM
-- **Cache/Queue**: Redis with Bull queues
+- **Database**: PostgreSQL with Prisma ORM (with environment-based logging)
+- **Cache**: Local in-memory cache with AES-256-GCM encryption
+- **Queue**: Redis with Bull queues (queue constants extracted)
 - **Firebase**: Firebase Admin SDK integration
 - **HTTP Client**: Axios-based HTTP service
-- **Local Storage**: In-memory storage service
 
 ## Database
 
@@ -68,60 +68,140 @@ pnpm prisma migrate deploy
 pnpm prisma migrate reset
 ```
 
+### Prisma Logging
+
+Prisma logging is configured based on the environment:
+
+- **Development**: Logs queries, info, warnings, and errors
+- **Production**: Logs only errors
+
+```typescript
+constructor() {
+  super({
+    log:
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'info', 'warn', 'error']
+        : ['error'],
+  });
+}
+```
+
 See [Database](database.md) for schema details.
 
-## Redis
+## Local Cache
 
-### Redis Service
+### Cache Service
 
-Redis is used for caching and queue management.
+The gateway uses a high-performance local in-memory cache with encryption support. This replaces Redis for general caching purposes while Redis is retained for Bull queue management.
 
-**Service**: `RedisService`
+**Service**: `CacheService`
 
 **Features**:
 
-- Key-value storage
-- TTL support
-- JSON serialization
-- Health checks
-- Automatic reconnection
+- AES-256-GCM authenticated encryption
+- LRU (Least Recently Used) eviction policy
+- TTL (Time-To-Live) support
+- Circuit breaker pattern for resilience
+- Single-flight pattern to prevent cache stampede
+- Automatic cleanup of expired entries
+- Statistics and memory usage tracking
 
 **Usage**:
 
 ```typescript
-// String operations
-await redisService.set('key', 'value', 3600); // TTL: 1 hour
-const value = await redisService.get('key');
+// Basic operations
+await cacheService.set('key', 'value', { ttl: 3600 }); // TTL: 1 hour
+const value = await cacheService.get<string>('key');
 
-// JSON operations
-await redisService.setJson('user:123', { name: 'John' }, 3600);
-const user = await redisService.getJson<User>('user:123');
+// Encrypted storage (for sensitive data)
+await cacheService.set('token:123', sensitiveData, {
+  ttl: 3600,
+  encrypt: true
+});
 
-// Existence check
-const exists = await redisService.exists('key');
+// Get with fallback (single-flight pattern)
+const data = await cacheService.getOrSet('user:123', async () => {
+  return await fetchFromDatabase();
+}, { ttl: 300 });
 
-// Delete
-await redisService.delete('key');
+// Delete operations
+await cacheService.delete('key');
+await cacheService.deleteByPrefix('user:'); // Delete by pattern
+
+// Statistics
+const stats = cacheService.getStats();
+// { hits, misses, hitRate, entries, evictions, encryptedEntries, memoryUsageEstimate, circuitState }
 ```
+
+### Cache Configuration
+
+Cache behavior is controlled via constants in `cache.constants.ts`:
+
+```typescript
+const CACHE_CONSTANTS = {
+  DEFAULT_TTL: 300,        // 5 minutes (seconds)
+  SHORT_TTL: 60,           // 1 minute
+  LONG_TTL: 3600,          // 1 hour
+  MAX_ENTRIES: 10000,      // Maximum cache size
+  EVICTION_THRESHOLD: 0.1, // Evict 10% when full
+  CIRCUIT_BREAKER_THRESHOLD: 5,  // Failures before opening
+  CIRCUIT_BREAKER_TIMEOUT: 30000, // 30s before half-open
+  SINGLE_FLIGHT_TIMEOUT: 5000,   // 5s timeout for in-flight requests
+};
+```
+
+### Cache Encryption
+
+Sensitive data can be encrypted at rest using AES-256-GCM:
+
+```env
+# Optional: 64-char hex key or 32-char string
+CACHE_ENCRYPTION_KEY=your-32-byte-or-64-hex-encryption-key
+```
+
+If not provided, a random key is generated (suitable for single-instance deployments).
+
+### Cache Key Prefixes
+
+Predefined prefixes for organizing cache entries:
+
+```typescript
+const CACHE_PREFIXES = {
+  SESSION: 'session:',
+  TOKEN: 'token:',
+  RATE_LIMIT: 'ratelimit:',
+  BILLER: 'biller:',
+  TRANSACTION: 'tx:',
+  WEBHOOK: 'webhook:',
+  CONFIG: 'config:',
+};
+```
+
+### Circuit Breaker
+
+The cache includes a circuit breaker to handle failures gracefully:
+
+- **CLOSED**: Normal operation
+- **OPEN**: After threshold failures, rejects all requests
+- **HALF_OPEN**: After timeout, allows one test request
+
+## Redis
+
+### Redis for Queues
+
+Redis is used as the backend for Bull queue management (not for general caching).
+
+**Note**: General caching has been moved to the local `CacheService`. Redis is retained for queue storage due to its distributed nature and Bull queue requirements.
 
 ### Redis Configuration
 
 ```env
-REDIS_URL=redis://localhost:6379
-# Or separate config:
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=your-password
 REDIS_DB=0
-REDIS_KEY_PREFIX=gateway:
+REDIS_KEY_PREFIX=inspirewallet:
 ```
-
-### Use Cases
-
-- **Token Caching**: OAuth access tokens
-- **Session Storage**: User sessions
-- **Rate Limiting**: Request rate tracking
-- **Queue Backend**: Bull queue storage
 
 ## Queue System
 
@@ -131,6 +211,20 @@ Bull provides job queue functionality with Redis backend.
 
 **Module**: `QueueModule`
 
+### Queue Constants
+
+Queue names are extracted to `queue.constants.ts` to avoid circular dependency issues:
+
+```typescript
+// queue.constants.ts
+export const QUEUE_NAMES = {
+  TRANSACTION: 'transaction',
+  WEBHOOK: 'webhook',
+} as const;
+
+export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
+```
+
 **Queues**:
 
 - `transaction`: Transaction processing
@@ -139,6 +233,8 @@ Bull provides job queue functionality with Redis backend.
 **Usage**:
 
 ```typescript
+import { QUEUE_NAMES } from './queue.constants';
+
 // Inject queue
 constructor(
   @InjectQueue(QUEUE_NAMES.TRANSACTION)
@@ -265,38 +361,17 @@ const response = await httpService.post('https://api.example.com/data', {
 
 ### In-Memory Storage
 
-In-memory storage service for temporary data.
+**Note**: The `LocalStorageService` has been superseded by the `CacheService` for most use cases. The `CacheService` provides additional features like encryption, circuit breakers, and LRU eviction.
 
-**Service**: `LocalStorageService`
+For temporary data storage with advanced features, use `CacheService` instead.
 
-**Features**:
+**Use Cases for CacheService**:
 
-- Key-value storage
-- TTL support
-- Automatic cleanup
-- Type-safe operations
-
-**Usage**:
-
-```typescript
-// Set with TTL
-await localStorageService.set('key', 'value', 3600);
-
-// Get
-const value = await localStorageService.get('key');
-
-// Delete
-await localStorageService.delete('key');
-
-// Exists
-const exists = await localStorageService.exists('key');
-```
-
-**Use Cases**:
-
-- Temporary data storage
-- Development/testing
-- Cache fallback
+- OAuth token caching (encrypted)
+- Session storage
+- Rate limiting data
+- Biller configuration caching
+- Transaction state caching
 
 ## Health Checks
 
@@ -308,8 +383,9 @@ Health check endpoints monitor infrastructure status.
 
 **Indicators**:
 
-- **Database**: PostgreSQL connection
-- **Redis**: Redis connection
+- **Database**: PostgreSQL connection via Prisma
+- **Cache**: Local in-memory cache circuit breaker state
+- **Redis**: Redis connection (for queues)
 - **Firebase**: Firebase connection
 
 **Endpoint**: `GET /api/v1/health`
@@ -320,13 +396,15 @@ Health check endpoints monitor infrastructure status.
 {
   "status": "ok",
   "info": {
-    "database": { "status": "up" },
+    "database": { "status": "up", "database": "postgresql" },
+    "cache": { "status": "up" },
     "redis": { "status": "up" },
     "firebase": { "status": "up" }
   },
   "error": {},
   "details": {
-    "database": { "status": "up" },
+    "database": { "status": "up", "database": "postgresql" },
+    "cache": { "status": "up" },
     "redis": { "status": "up" },
     "firebase": { "status": "up" }
   }
