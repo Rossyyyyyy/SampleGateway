@@ -6,7 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from './config';
 
 // Infrastructure
-import { DatabaseModule } from './infrastructure/database';
+// DatabaseModule removed - using Firebase Firestore instead
 import { FirebaseModule } from './infrastructure/firebase';
 import { HttpModule } from './infrastructure/http';
 import { QueueModule } from './infrastructure/queue';
@@ -51,7 +51,6 @@ import { WebhooksModule } from './modules/webhooks';
     ]),
 
     // Infrastructure
-    DatabaseModule,
     FirebaseModule,
     RedisModule,
     HttpModule,
