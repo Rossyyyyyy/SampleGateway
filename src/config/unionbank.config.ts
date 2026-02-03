@@ -16,6 +16,10 @@ export interface UnionbankConfigType {
   oauthClientId: string;
   // x-partner-id header
   partnerId: string;
+  // UnionBank account number (provided by UnionBank)
+  accountNumber?: string;
+  // UnionBank API list / product name (e.g. UPay-Status-Inquiry-by-UnionBank)
+  apiList?: string;
   // OAuth password grant credentials
   username: string;
   password: string;
@@ -30,7 +34,8 @@ export interface UnionbankConfigType {
   upayEndpoint: string;
   // UPay Redirect/Encryption settings
   upayRedirectDomain?: string; // Domain for redirect URL (e.g., "pay.unionbankph.com")
-  upayBillerUuid?: string; // Biller UUID for redirect URL
+  /** Biller ID (UUID) for redirect URL; from UNIONBANK_UPAY_BILLER_ID per UnionBank docs */
+  upayBillerUuid?: string;
   upayAesKey?: string; // AES-256 key for redirect encryption (32 bytes, hex or base64)
   // Request settings
   timeout: number;
@@ -54,6 +59,8 @@ export const unionbankConfig = registerAs(
     clientSecret: process.env.UNIONBANK_CLIENT_SECRET ?? '',
     oauthClientId: process.env.UNIONBANK_OAUTH_CLIENT_ID ?? '',
     partnerId: process.env.UNIONBANK_PARTNER_ID ?? '',
+    accountNumber: process.env.UNIONBANK_ACCOUNT_NUMBER ?? '',
+    apiList: process.env.UNIONBANK_API_LIST ?? '',
     username: process.env.UNIONBANK_USERNAME ?? '',
     password: process.env.UNIONBANK_PASSWORD ?? '',
     scope: process.env.UNIONBANK_SCOPE ?? 'upay_payments',
@@ -68,7 +75,7 @@ export const unionbankConfig = registerAs(
       process.env.UNIONBANK_UPAY_ENDPOINT ??
       '/ubp/external/upay/payments/v1/transactions',
     upayRedirectDomain: process.env.UNIONBANK_UPAY_REDIRECT_DOMAIN ?? '',
-    upayBillerUuid: process.env.UNIONBANK_UPAY_BILLER_UUID ?? '',
+    upayBillerUuid: process.env.UNIONBANK_UPAY_BILLER_ID ?? '',
     upayAesKey: process.env.UNIONBANK_UPAY_AES_KEY ?? '',
     timeout: parseInt(process.env.UNIONBANK_TIMEOUT ?? '30000', 10),
     retryAttempts: parseInt(process.env.UNIONBANK_RETRY_ATTEMPTS ?? '3', 10),

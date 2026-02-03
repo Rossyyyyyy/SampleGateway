@@ -66,7 +66,7 @@ export class UnionbankUpayRedirectService {
     const billerUuid = params.billerUuid ?? this.config.upayBillerUuid;
     if (!billerUuid) {
       throw new Error(
-        'Biller UUID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_UUID.',
+        'Biller ID is required. Set billerUuid in params or configure UNIONBANK_UPAY_BILLER_ID.',
       );
     }
 

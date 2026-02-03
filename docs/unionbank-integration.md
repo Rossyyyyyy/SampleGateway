@@ -245,7 +245,6 @@ if (!result.isValid) {
 }
 ```
 
-
 ### Account Inquiry Service
 
 Validates and retrieves account information.
@@ -313,7 +312,7 @@ Required environment variables:
 ```env
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
 ```
 
 ### AES Key Format

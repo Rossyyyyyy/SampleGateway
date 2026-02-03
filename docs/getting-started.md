@@ -41,7 +41,7 @@ NODE_ENV=development
 PORT=3000
 API_PREFIX=api
 API_VERSION=v1
-APP_NAME=inspirewallet-gateway
+UNIONBANK_APP_NAME=inspirewallet-gateway
 
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/inspirewallet?schema=public
@@ -65,7 +65,7 @@ UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-aes-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
 
 # Firebase (optional)
 FIREBASE_PROJECT_ID=your-project-id

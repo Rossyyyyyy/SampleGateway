@@ -25,7 +25,7 @@ NODE_ENV=development|production|test
 PORT=3000
 API_PREFIX=api
 API_VERSION=v1
-APP_NAME=inspirewallet-gateway
+UNIONBANK_APP_NAME=inspirewallet-gateway
 
 # CORS
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001
@@ -190,7 +190,7 @@ UNIONBANK_UPAY_ENDPOINT=/ubp/external/upay/payments/v1/transactions
 
 # UPay Redirect
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-aes-key
 
 # Request Settings
@@ -209,6 +209,8 @@ interface UnionbankConfigType {
   clientSecret: string;
   oauthClientId: string;
   partnerId: string;
+  accountNumber?: string;
+  apiList?: string;
   username: string;
   password: string;
   scope: string;
@@ -388,7 +390,7 @@ NODE_ENV=development
 PORT=3000
 API_PREFIX=api
 API_VERSION=v1
-APP_NAME=inspirewallet-gateway
+UNIONBANK_APP_NAME=inspirewallet-gateway
 
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/inspirewallet?schema=public
@@ -413,12 +415,14 @@ UNIONBANK_CLIENT_ID=your-client-id
 UNIONBANK_CLIENT_SECRET=your-client-secret
 UNIONBANK_OAUTH_CLIENT_ID=your-oauth-client-id
 UNIONBANK_PARTNER_ID=your-partner-id
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 UNIONBANK_USERNAME=your-username
 UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
 
 # Firebase (optional)
 FIREBASE_PROJECT_ID=your-project-id
