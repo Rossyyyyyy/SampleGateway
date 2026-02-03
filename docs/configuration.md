@@ -7,10 +7,11 @@ The gateway uses environment variables for configuration. All configuration is l
 Configuration is organized into modules:
 
 - **Application**: General application settings
-- **Database**: PostgreSQL configuration
-- **Redis**: Redis cache/queue configuration
+- **Database**: PostgreSQL configuration (with Prisma logging)
+- **Redis**: Redis queue configuration (used for Bull queues)
+- **Cache**: Local in-memory cache with encryption
 - **Security**: JWT, encryption, rate limiting
-- **UnionBank**: UnionBank API integration
+- **UnionBank**: UnionBank API integration (UPay)
 - **Firebase**: Firebase Admin SDK
 
 ## Application Configuration
@@ -25,7 +26,7 @@ NODE_ENV=development|production|test
 PORT=3000
 API_PREFIX=api
 API_VERSION=v1
-APP_NAME=inspirewallet-gateway
+UNIONBANK_APP_NAME=inspirewallet-gateway
 
 # CORS
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001
@@ -82,12 +83,12 @@ postgresql://[user]:[password]@[host]:[port]/[database]?[parameters]
 
 ## Redis Configuration
 
+Redis is used as the backend for Bull queues. General caching is handled by the local in-memory `CacheService`.
+
 ### Redis Environment Variables
 
 ```env
-# Redis Connection
-REDIS_URL=redis://localhost:6379
-# Or separate config:
+# Redis Connection (for Bull queues)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=your-password
@@ -107,11 +108,30 @@ interface RedisConfigType {
 }
 ```
 
-### Connection URL Format
+## Local Cache Configuration
 
-```text
-redis://[password@]host:port[/db]
+The application uses a local in-memory cache with AES-256-GCM encryption support.
+
+### Cache Environment Variables
+
+```env
+# Cache encryption key (optional)
+# Format: 64-char hex string OR 32-char UTF-8 string
+# If not set, a random key is generated (ephemeral)
+CACHE_ENCRYPTION_KEY=your-64-hex-char-or-32-char-encryption-key
 ```
+
+### Cache Constants
+
+Cache behavior is configured via constants (not environment variables):
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `DEFAULT_TTL` | 300 | Default TTL in seconds (5 min) |
+| `SHORT_TTL` | 60 | Short TTL for volatile data (1 min) |
+| `LONG_TTL` | 3600 | Long TTL for stable data (1 hour) |
+| `MAX_ENTRIES` | 10000 | Maximum cache entries before eviction |
+| `EVICTION_THRESHOLD` | 0.1 | Percentage of entries to evict when full |
 
 ## Security Configuration
 
@@ -157,6 +177,23 @@ interface SecurityConfigType {
 
 ## UnionBank Configuration
 
+Behaviour and parameters follow [UB_UPay_documentation.txt](UB_UPay_documentation.txt) (U Pay / UnionBank Payments and Collections).
+
+### Module Initialization Logging
+
+On module initialization, the UnionBank module logs configuration details for debugging:
+
+```
+════════════════════════════════════════════════
+  UnionBank Environment: UAT UAT:
+  Base URL: https://api-uat.unionbankph.com
+  Token Endpoint: /ubp/uat/partners/v1/oauth2/token
+  UPay Endpoint: /ubp/external/upay/payments/v1/transactions
+  Partner ID: a59f3d6e...
+  Biller UUID: FFF16386-3FFE-232D-1F7E-7E94C7665863
+════════════════════════════════════════════════
+```
+
 ### UnionBank Environment Variables
 
 ```env
@@ -168,7 +205,7 @@ UNIONBANK_ENV=uat|sandbox|sb
 # Base URL
 UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
 
-# API Credentials
+# API Credentials (from UnionBank API Marketplace Billing Address)
 UNIONBANK_CLIENT_ID=your-client-id
 UNIONBANK_CLIENT_SECRET=your-client-secret
 UNIONBANK_PARTNER_ID=your-partner-id
@@ -188,10 +225,31 @@ UNIONBANK_TOKEN_ENDPOINT=/ubp/uat/partners/v1/oauth2/token
 # UPay APIs are under /ubp/external/... (even when using the UAT base domain)
 UNIONBANK_UPAY_ENDPOINT=/ubp/external/upay/payments/v1/transactions
 
-# UPay Redirect
+# UPay Redirect (per UB UPay doc: White Label / BillerUuid)
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
+
+# Biller ID: Integer ID provided by UnionBank during onboarding.
+# Used in UPay API calls to identify the biller/merchant.
+# Format: Numeric string (e.g., "4446")
+# See UB_UPay_documentation.txt for biller registration details.
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
+
+# Biller UUID: Alternative UUID identifier for redirect URLs
 UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+
+# AES Encryption Key for redirect payload encryption
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-aes-key
+
+# Account Number: Your UnionBank merchant/partner account number.
+# Format: Numeric string as provided by UnionBank (e.g., "1419")
+# Used for identification in API requests per UB_UPay_documentation.txt.
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+
+# API List: Comma-separated list of subscribed APIs.
+# Format: API product names from UnionBank marketplace.
+# Example: "UPay-Status-Inquiry-by-UnionBank"
+# Determines which UnionBank API products are enabled for this integration.
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 
 # Request Settings
 UNIONBANK_TIMEOUT=30000
@@ -209,6 +267,8 @@ interface UnionbankConfigType {
   clientSecret: string;
   oauthClientId: string;
   partnerId: string;
+  accountNumber?: string;
+  apiList?: string;
   username: string;
   password: string;
   scope: string;
@@ -388,7 +448,7 @@ NODE_ENV=development
 PORT=3000
 API_PREFIX=api
 API_VERSION=v1
-APP_NAME=inspirewallet-gateway
+UNIONBANK_APP_NAME=inspirewallet-gateway
 
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/inspirewallet?schema=public
@@ -413,12 +473,14 @@ UNIONBANK_CLIENT_ID=your-client-id
 UNIONBANK_CLIENT_SECRET=your-client-secret
 UNIONBANK_OAUTH_CLIENT_ID=your-oauth-client-id
 UNIONBANK_PARTNER_ID=your-partner-id
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 UNIONBANK_USERNAME=your-username
 UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
 
 # Firebase (optional)
 FIREBASE_PROJECT_ID=your-project-id

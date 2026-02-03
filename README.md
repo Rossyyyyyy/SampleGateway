@@ -31,7 +31,8 @@ This gateway serves as a middleware between partners/clients and UnionBank's pay
 
 - **Framework**: NestJS 11
 - **Database**: PostgreSQL with Prisma ORM
-- **Cache/Queue**: Redis with Bull
+- **Caching**: Local in-memory cache with AES-256 encryption
+- **Queues**: Redis with Bull (for transaction/webhook processing)
 - **Authentication**: JWT (Passport)
 - **Documentation**: Swagger/OpenAPI
 - **Logging**: Winston
@@ -84,11 +85,12 @@ src/
 ├── common/                 # Shared utilities, guards, interceptors
 ├── config/                 # Configuration modules
 ├── infrastructure/         # External service integrations
+│   ├── cache/             # Local in-memory cache with encryption
 │   ├── database/           # Prisma database service
-│   ├── redis/             # Redis service
+│   ├── redis/             # Redis service (for queues)
 │   ├── firebase/          # Firebase service
 │   ├── http/              # HTTP client service
-│   └── queue/             # Bull queue processors
+│   └── queue/             # Bull queue processors (constants extracted)
 ├── integrations/          # Third-party integrations
 │   └── unionbank/         # UnionBank API integration
 ├── modules/               # Feature modules
@@ -105,8 +107,9 @@ src/
 Key environment variables (see [Configuration](docs/configuration.md) for complete list):
 
 - `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string
+- `REDIS_HOST` - Redis host (for Bull queues)
 - `JWT_SECRET` - JWT signing secret
+- `CACHE_ENCRYPTION_KEY` - Optional AES key for cache encryption
 - `UNIONBANK_CLIENT_ID` - UnionBank API client ID
 - `UNIONBANK_CLIENT_SECRET` - UnionBank API client secret
 - `UNIONBANK_UPAY_AES_KEY` - AES key for uPay redirect encryption

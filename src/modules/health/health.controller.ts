@@ -6,18 +6,16 @@ import {
   HealthCheckResult,
 } from '@nestjs/terminus';
 import { Public } from '../../common/decorators/public.decorator';
-import { DatabaseHealthIndicator } from './indicators/database.indicator';
+import { CacheHealthIndicator } from './indicators/cache.indicator';
 import { FirebaseHealthIndicator } from './indicators/firebase.indicator';
-import { RedisHealthIndicator } from './indicators/redis.indicator';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
-    private readonly databaseIndicator: DatabaseHealthIndicator,
+    private readonly cacheIndicator: CacheHealthIndicator,
     private readonly firebaseIndicator: FirebaseHealthIndicator,
-    private readonly redisIndicator: RedisHealthIndicator,
   ) {}
 
   @Public()
@@ -26,8 +24,8 @@ export class HealthController {
   @ApiOperation({ summary: 'Health check endpoint' })
   check(): Promise<HealthCheckResult> {
     return this.health.check([
+      () => this.cacheIndicator.isHealthy('cache'),
       () => this.firebaseIndicator.isHealthy('firebase'),
-      () => this.redisIndicator.isHealthy('redis'),
     ]);
   }
 
@@ -44,8 +42,8 @@ export class HealthController {
   @ApiOperation({ summary: 'Kubernetes readiness probe' })
   readiness(): Promise<HealthCheckResult> {
     return this.health.check([
+      () => this.cacheIndicator.isHealthy('cache'),
       () => this.firebaseIndicator.isHealthy('firebase'),
-      () => this.redisIndicator.isHealthy('redis'),
     ]);
   }
 }

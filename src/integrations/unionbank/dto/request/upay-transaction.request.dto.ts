@@ -39,7 +39,8 @@ export interface UpayTransactionRequest {
 
 export interface CreateUpayTransactionParams {
   senderRefId: string;
-  billerUuid: string;
+  /** Biller ID: integer provided by UnionBank, retained as string. Optional when using redirect flow (from config). API uses BillerUuid per UB UPay doc. */
+  billerUuid?: string;
   emailAddress: string;
   /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted (e.g. in redirect payload). */
   countryCode?: string;
@@ -70,7 +71,7 @@ export function createUpayTransactionRequest(
   return {
     senderRefId: params.senderRefId,
     tranRequestDate,
-    billerUuid: params.billerUuid,
+    billerUuid: params.billerUuid ?? '',
     emailAddress: params.emailAddress,
     mobileNumber: params.mobileNumber,
     amount: params.amount,

@@ -262,6 +262,30 @@ pnpm prisma migrate deploy
 pnpm prisma migrate reset
 ```
 
+## Prisma Logging
+
+Prisma is configured with environment-based logging:
+
+```typescript
+constructor() {
+  super({
+    log:
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'info', 'warn', 'error']
+        : ['error'],
+  });
+}
+```
+
+**Development Environment** (`NODE_ENV=development`):
+- `query`: Logs all database queries (useful for debugging)
+- `info`: General information messages
+- `warn`: Warning messages
+- `error`: Error messages
+
+**Production Environment** (`NODE_ENV=production`):
+- `error`: Only logs errors (minimizes log volume)
+
 ## Prisma Client
 
 ### Generate Client

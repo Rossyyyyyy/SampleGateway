@@ -2,13 +2,12 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisConfigType } from '../../config/redis.config';
+import { QUEUE_NAMES } from './queue.constants';
 import { TransactionProcessor } from './processors/transaction.processor';
 import { WebhookProcessor } from './processors/webhook.processor';
 
-export const QUEUE_NAMES = {
-  TRANSACTION: 'transaction',
-  WEBHOOK: 'webhook',
-} as const;
+// Re-export for backward compatibility
+export { QUEUE_NAMES } from './queue.constants';
 
 @Module({
   imports: [

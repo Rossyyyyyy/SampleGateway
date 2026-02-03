@@ -101,7 +101,7 @@ async function runTest() {
   }
 
   if (!unionbankConfigValue?.upayBillerUuid) {
-    logger.error('ERROR: UNIONBANK_UPAY_BILLER_UUID is not set');
+    logger.error('ERROR: UNIONBANK_UPAY_BILLER_ID is not set');
     logger.error('Please set it in your .env file');
     process.exit(1);
   }

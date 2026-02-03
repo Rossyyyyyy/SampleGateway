@@ -15,6 +15,6 @@ export const appConfig = registerAs(
     port: parseInt(process.env.PORT ?? '3000', 10),
     apiPrefix: process.env.API_PREFIX ?? 'api',
     apiVersion: process.env.API_VERSION ?? 'v1',
-    name: process.env.APP_NAME ?? 'inspirewallet-gateway',
+    name: process.env.UNIONBANK_APP_NAME ?? 'inspirewallet-gateway',
   }),
 );

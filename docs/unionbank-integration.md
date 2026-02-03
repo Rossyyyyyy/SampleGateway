@@ -2,6 +2,8 @@
 
 The gateway integrates with UnionBank's payment APIs to provide InstaPay, PESONet, and uPay payment processing capabilities.
 
+**Reference**: U Pay (UnionBank Payments and Collections) behaviour and parameters follow [UB_UPay_documentation.txt](UB_UPay_documentation.txt).
+
 ## Overview
 
 The UnionBank integration module provides:
@@ -245,7 +247,6 @@ if (!result.isValid) {
 }
 ```
 
-
 ### Account Inquiry Service
 
 Validates and retrieves account information.
@@ -308,12 +309,32 @@ type UpayPaymentMethod =
 
 ### uPay Redirect Configuration
 
-Required environment variables:
+Required environment variables (aligned with UB UPay doc):
 
 ```env
+# Application name (UnionBank / UPay context)
+UNIONBANK_APP_NAME=inspirewallet-gateway
+
+# UnionBank-provided values (see UB_UPay_documentation.txt)
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
+
+# UPay Redirect / White Label (per UB UPay doc: BillerUuid string in API)
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
-UNIONBANK_UPAY_BILLER_UUID=your-biller-uuid
+
+# Biller ID: Integer ID provided by UnionBank during onboarding.
+# Used in UPay API calls to identify the biller/merchant.
+# Format: Numeric string (e.g., "4446")
+UNIONBANK_UPAY_BILLER_ID=your-biller-id
+
+# Account Number: Your UnionBank merchant/partner account number.
+# Format: Numeric string as provided by UnionBank (e.g., "1419")
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+
+# API List: Comma-separated list of subscribed UPay APIs.
+# Format: API product names from UnionBank marketplace.
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 ```
 
 ### AES Key Format
@@ -367,7 +388,7 @@ Note: the OAuth token request is `application/x-www-form-urlencoded` and does **
 
 ### Token Caching
 
-Access tokens are cached in Redis to avoid unnecessary token requests.
+Access tokens are cached in the local in-memory cache to avoid unnecessary token requests. The cache supports optional AES-256-GCM encryption for sensitive token data.
 
 ## API Client
 
@@ -471,10 +492,10 @@ UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
 
 Obtain test credentials from UnionBank for:
 
-- Client ID and Secret
-- OAuth credentials
+- Client ID and Secret (`x-ibm-client-id`, `x-ibm-client-secret` per UB UPay doc)
+- OAuth credentials (username, password)
 - Test account numbers
-- Test biller UUID
+- Test biller ID (integer from UnionBank, set as string in `UNIONBANK_UPAY_BILLER_ID`)
 
 ### Mock Responses
 
