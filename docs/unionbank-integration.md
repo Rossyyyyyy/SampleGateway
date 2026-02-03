@@ -2,6 +2,8 @@
 
 The gateway integrates with UnionBank's payment APIs to provide InstaPay, PESONet, and uPay payment processing capabilities.
 
+**Reference**: U Pay (UnionBank Payments and Collections) behaviour and parameters follow [UB_UPay_documentation.txt](UB_UPay_documentation.txt).
+
 ## Overview
 
 The UnionBank integration module provides:
@@ -307,11 +309,20 @@ type UpayPaymentMethod =
 
 ### uPay Redirect Configuration
 
-Required environment variables:
+Required environment variables (aligned with UB UPay doc):
 
 ```env
+# Application name (UnionBank / UPay context)
+UNIONBANK_APP_NAME=inspirewallet-gateway
+
+# UnionBank-provided values (see UB_UPay_documentation.txt)
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
+
+# UPay Redirect / White Label (per UB UPay doc: BillerUuid string in API)
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
+# Biller ID: integer provided by UnionBank, retained as string (e.g. "4446" or UUID string)
 UNIONBANK_UPAY_BILLER_ID=your-biller-id
 ```
 
@@ -470,10 +481,10 @@ UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
 
 Obtain test credentials from UnionBank for:
 
-- Client ID and Secret
-- OAuth credentials
+- Client ID and Secret (`x-ibm-client-id`, `x-ibm-client-secret` per UB UPay doc)
+- OAuth credentials (username, password)
 - Test account numbers
-- Test biller UUID
+- Test biller ID (integer from UnionBank, set as string in `UNIONBANK_UPAY_BILLER_ID`)
 
 ### Mock Responses
 

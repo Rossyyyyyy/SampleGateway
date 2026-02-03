@@ -34,7 +34,7 @@ export interface UnionbankConfigType {
   upayEndpoint: string;
   // UPay Redirect/Encryption settings
   upayRedirectDomain?: string; // Domain for redirect URL (e.g., "pay.unionbankph.com")
-  /** Biller ID (UUID) for redirect URL; from UNIONBANK_UPAY_BILLER_ID per UnionBank docs */
+  /** Biller ID: integer provided by UnionBank, retained as string. Used as BillerUuid in White Label URL per UB UPay doc. */
   upayBillerUuid?: string;
   upayAesKey?: string; // AES-256 key for redirect encryption (32 bytes, hex or base64)
   // Request settings

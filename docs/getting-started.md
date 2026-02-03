@@ -54,17 +54,20 @@ JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=1h
 JWT_REFRESH_EXPIRES_IN=7d
 
-# UnionBank API
+# UnionBank API (see docs/UB_UPay_documentation.txt)
 UNIONBANK_BASE_URL=https://api-uat.unionbankph.com
 UNIONBANK_CLIENT_ID=your-client-id
 UNIONBANK_CLIENT_SECRET=your-client-secret
 UNIONBANK_OAUTH_CLIENT_ID=your-oauth-client-id
 UNIONBANK_PARTNER_ID=your-partner-id
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 UNIONBANK_USERNAME=your-username
 UNIONBANK_PASSWORD=your-password
 UNIONBANK_SCOPE=upay_payments
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-aes-key
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
+# Biller ID: integer from UnionBank, set as string (e.g. "4446")
 UNIONBANK_UPAY_BILLER_ID=your-biller-id
 
 # Firebase (optional)

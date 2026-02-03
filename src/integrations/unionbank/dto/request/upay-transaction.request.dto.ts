@@ -39,7 +39,7 @@ export interface UpayTransactionRequest {
 
 export interface CreateUpayTransactionParams {
   senderRefId: string;
-  /** Biller ID (UUID). Optional when using redirect flow (supplied from config). */
+  /** Biller ID: integer provided by UnionBank, retained as string. Optional when using redirect flow (from config). API uses BillerUuid per UB UPay doc. */
   billerUuid?: string;
   emailAddress: string;
   /** Country code for international numbers (no leading +). Optional; default PH (63) when omitted (e.g. in redirect payload). */

@@ -157,6 +157,8 @@ interface SecurityConfigType {
 
 ## UnionBank Configuration
 
+Behaviour and parameters follow [UB_UPay_documentation.txt](UB_UPay_documentation.txt) (U Pay / UnionBank Payments and Collections).
+
 ### UnionBank Environment Variables
 
 ```env
@@ -188,10 +190,15 @@ UNIONBANK_TOKEN_ENDPOINT=/ubp/uat/partners/v1/oauth2/token
 # UPay APIs are under /ubp/external/... (even when using the UAT base domain)
 UNIONBANK_UPAY_ENDPOINT=/ubp/external/upay/payments/v1/transactions
 
-# UPay Redirect
+# UPay Redirect (per UB UPay doc: White Label / BillerUuid)
 UNIONBANK_UPAY_REDIRECT_DOMAIN=pay.unionbankph.com
+# Biller ID: integer provided by UnionBank, retained as string (e.g. "4446")
 UNIONBANK_UPAY_BILLER_ID=your-biller-id
 UNIONBANK_UPAY_AES_KEY=your-32-byte-hex-aes-key
+
+# UnionBank-provided (see UB_UPay_documentation.txt)
+UNIONBANK_ACCOUNT_NUMBER=your-account-number
+UNIONBANK_API_LIST=UPay-Status-Inquiry-by-UnionBank
 
 # Request Settings
 UNIONBANK_TIMEOUT=30000
