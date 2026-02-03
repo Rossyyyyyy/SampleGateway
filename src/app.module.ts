@@ -7,10 +7,11 @@ import { ConfigModule } from './config';
 
 // Infrastructure
 // DatabaseModule removed - using Firebase Firestore instead
+// RedisModule replaced with local CacheModule
+import { CacheModule } from './infrastructure/cache';
 import { FirebaseModule } from './infrastructure/firebase';
 import { HttpModule } from './infrastructure/http';
 import { QueueModule } from './infrastructure/queue';
-import { RedisModule } from './infrastructure/redis';
 
 // Integrations
 import { UnionbankModule } from './integrations/unionbank';
@@ -51,8 +52,8 @@ import { WebhooksModule } from './modules/webhooks';
     ]),
 
     // Infrastructure
+    CacheModule,
     FirebaseModule,
-    RedisModule,
     HttpModule,
     QueueModule,
 

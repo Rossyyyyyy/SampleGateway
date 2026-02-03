@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '../../infrastructure/redis/redis.service';
+import { CacheService } from '../../infrastructure/cache/cache.service';
 import { AuditService } from '../../audit/audit.service';
 import { ActorType } from '../../audit/interfaces/audit-event.interface';
 import { AuditEventType } from '../../audit/interfaces/audit-event.interface';
@@ -19,7 +19,7 @@ export class WebhooksService {
   private readonly logger = new Logger(WebhooksService.name);
 
   constructor(
-    private readonly redisService: RedisService,
+    private readonly cacheService: CacheService,
     private readonly transferHandler: TransferWebhookHandler,
     private readonly auditService: AuditService,
   ) {}
@@ -29,7 +29,7 @@ export class WebhooksService {
   ): Promise<UnionbankAutopostResponseDto> {
     const idempotencyKey = `${payload.transactionId}:${payload.senderRefId}`;
 
-    const isDuplicate = await this.redisService.exists(
+    const isDuplicate = await this.cacheService.exists(
       `${AUTOPOST_PROCESSED_KEY_PREFIX}${idempotencyKey}`,
     );
     if (isDuplicate) {
@@ -59,10 +59,10 @@ export class WebhooksService {
 
     this.routeAutopost(payload);
 
-    await this.redisService.set(
+    await this.cacheService.set(
       `${AUTOPOST_PROCESSED_KEY_PREFIX}${idempotencyKey}`,
       new Date().toISOString(),
-      WEBHOOK_TTL_SECONDS,
+      { ttl: WEBHOOK_TTL_SECONDS },
     );
 
     return { received: true, idempotencyKey };
@@ -137,15 +137,13 @@ export class WebhooksService {
 
   private async isDuplicateWebhook(eventId: string): Promise<boolean> {
     const key = `${WEBHOOK_PROCESSED_KEY_PREFIX}${eventId}`;
-    return this.redisService.exists(key);
+    return this.cacheService.exists(key);
   }
 
   private async markWebhookProcessed(eventId: string): Promise<void> {
     const key = `${WEBHOOK_PROCESSED_KEY_PREFIX}${eventId}`;
-    await this.redisService.set(
-      key,
-      new Date().toISOString(),
-      WEBHOOK_TTL_SECONDS,
-    );
+    await this.cacheService.set(key, new Date().toISOString(), {
+      ttl: WEBHOOK_TTL_SECONDS,
+    });
   }
 }
