@@ -1,3 +1,4 @@
+//C:\Users\Roschel\Downloads\inspirewalletgateway\src\integrations\unionbank\dto\response\index.ts
 export * from './oauth-token.response.dto';
 export * from './instapay-transfer.response.dto';
 export * from './pesonet-transfer.response.dto';

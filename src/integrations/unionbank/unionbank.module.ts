@@ -1,3 +1,4 @@
+//C:\Users\Roschel\Downloads\inspirewalletgateway\src\integrations\unionbank\unionbank.module.ts
 import { Module, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UnionbankApiClient, UnionbankOAuthClient } from './client';

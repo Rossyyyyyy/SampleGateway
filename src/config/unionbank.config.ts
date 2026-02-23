@@ -27,14 +27,13 @@ export interface UnionbankConfigType {
   scope: string;
   // OAuth token endpoint
   tokenEndpoint: string;
-  // In UnionBankConfigType interface
-  // Shared secrer for verifying UnionBank autopost webhook payloads (HMAC).
+  // Shared secret for verifying UnionBank autopost webhook payloads (HMAC).
   upayAutopostWebhookSecret?: string;
   // UPay transactions endpoint
   upayEndpoint: string;
   // UPay Redirect/Encryption settings
   upayRedirectDomain?: string; // Domain for redirect URL (e.g., "pay.unionbankph.com")
-  /** Biller ID: integer provided by UnionBank, retained as string. Used as BillerUuid in White Label URL per UB UPay doc. */
+  /** Biller UUID: provided by UnionBank. Used as BillerUuid in White Label URL per UB UPay doc. */
   upayBillerUuid?: string;
   upayAesKey?: string; // AES-256 key for redirect encryption (32 bytes, hex or base64)
   // Request settings
@@ -75,7 +74,10 @@ export const unionbankConfig = registerAs(
       process.env.UNIONBANK_UPAY_ENDPOINT ??
       '/ubp/external/upay/payments/v1/transactions',
     upayRedirectDomain: process.env.UNIONBANK_UPAY_REDIRECT_DOMAIN ?? '',
-    upayBillerUuid: process.env.UNIONBANK_UPAY_BILLER_ID ?? '',
+
+    // ✅ FIXED: was UNIONBANK_UPAY_BILLER_ID (wrong), now UNIONBANK_UPAY_BILLER_UUID (matches .env)
+    upayBillerUuid: process.env.UNIONBANK_UPAY_BILLER_UUID ?? '',
+
     upayAesKey: process.env.UNIONBANK_UPAY_AES_KEY ?? '',
     timeout: parseInt(process.env.UNIONBANK_TIMEOUT ?? '30000', 10),
     retryAttempts: parseInt(process.env.UNIONBANK_RETRY_ATTEMPTS ?? '3', 10),
