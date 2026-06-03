@@ -1,3 +1,4 @@
+//C:\Users\Roschel\Downloads\inspirewalletgateway\src\integrations\unionbank\services\unionbank-upay.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { UnionbankEndpoints } from '../../../common/constants';
 import { UnionbankApiClient } from '../client/unionbank-api.client';
@@ -13,6 +14,8 @@ import {
   UpayBillerUuidResponse,
   UpayBillerUuidReferencesResponse,
   UpayBillerUuidStatusResponse,
+  SimplifiedBillerDetails,
+  SimplifiedBillerReference,
 } from '../dto/response/upay-biller.response.dto';
 import type {
   UPayInstapayBankResponse,
@@ -50,6 +53,7 @@ export class UnionbankUpayService {
     );
     return response;
   }
+  
 
   /**
    * Create a UPay transaction for debit/credit card payment
@@ -218,5 +222,73 @@ export class UnionbankUpayService {
       'Biller UUID status retrieved: ${response.data?.length ?? 0} items',
     );
     return response;
+  }
+ // ... existing methods ...
+
+  /**
+   * UPAY-000: Get simplified biller details for testing
+   * This method transforms the UnionBank response into a simpler format
+   * that's easier to validate and display
+   */
+  async getSimplifiedBillerDetails(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<SimplifiedBillerDetails> {
+    this.logger.log(
+      `Getting simplified biller details for UUID: ${billerUuid}`,
+    );
+
+    // Get both biller details and references
+    const [billerResponse, referencesResponse] = await Promise.all([
+      this.getBillerDetails(billerUuid, requestId),
+      this.getBillerReferences(billerUuid, requestId),
+    ]);
+
+    // Extract the first biller (should only be one)
+    const biller = billerResponse.billers?.[0];
+    if (!biller) {
+      throw new Error(`Biller not found: ${billerUuid}`);
+    }
+
+    // Transform references to simplified format
+    const simplifiedReferences: SimplifiedBillerReference[] =
+      referencesResponse.references?.map((ref) => ({
+        id: `reference${ref.index}`, // Convert index to id format
+        index: ref.index,
+        label: ref.name,
+        fieldType: ref.fieldType,
+        required: ref.validations?.isRequired || false,
+        visible:
+          ref.validations?.isVisible === true ||
+          ref.validations?.isVisible === 'true',
+        masked: ref.validations?.isMasked || false,
+        minLength: parseInt(ref.validations?.minCharLength || '0', 10),
+        maxLength: parseInt(ref.validations?.maxCharLength || '999', 10),
+        validationType: ref.validations?.fieldValidationType?.name || 'ANY',
+      })) || [];
+
+    this.logger.log(
+      `Found ${simplifiedReferences.length} reference fields for biller`,
+    );
+
+    return {
+      billerUuid: biller.billerUuid,
+      billerCode: biller.billerCode,
+      billerName: biller.billerName,
+      accountNumber: biller.accountNumber,
+      references: simplifiedReferences,
+      paymentChannels: biller.paymentChannels,
+    };
+  }
+
+  /**
+   * UPAY-000: Get only simplified reference fields
+   */
+  async getSimplifiedBillerReferences(
+    billerUuid: string,
+    requestId?: string,
+  ): Promise<SimplifiedBillerReference[]> {
+    const details = await this.getSimplifiedBillerDetails(billerUuid, requestId);
+    return details.references;
   }
 }

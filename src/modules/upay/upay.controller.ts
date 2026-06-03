@@ -1,3 +1,4 @@
+// C:\Users\Roschel\Downloads\inspirewalletgateway\src\modules\upay\upay.controller.ts
 import {
   Body,
   Controller,
@@ -195,7 +196,86 @@ export class UpayController {
     @Param('billerUuid') billerUuid: string,
   ): Promise<UpayBillerUuidStatusResponseDto> {
     const result = await this.upayService.getBillerUuidStatus(billerUuid);
-
     return result;
+  }
+
+  /**
+   * UPAY-000 TEST ENDPOINT: Get simplified biller details
+   * This is specifically for UPAY-000 testing - returns data in an easy-to-validate format
+   */
+  @Get('test/billers/:billerUuid')
+  @ApiOperation({
+    summary: 'Get simplified biller details (UPAY-000 Testing)',
+    description:
+      'Returns biller details in a simplified format for UPAY-000 validation. Shows all reference fields that must be displayed.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Simplified biller details retrieved successfully',
+    schema: {
+      example: {
+        billerUuid: 'FFF16386-3FFE-232D-1F7E-7E94C7665863',
+        billerCode: '4446',
+        billerName: 'INSPIRE ALLIANCE',
+        accountNumber: '1419',
+        references: [
+          {
+            id: 'reference1',
+            index: '1',
+            label: 'Account Number',
+            fieldType: 'NUMERIC',
+            required: true,
+            visible: true,
+            masked: false,
+            minLength: 6,
+            maxLength: 12,
+            validationType: 'NUMERIC',
+          },
+          {
+            id: 'reference2',
+            index: '2',
+            label: 'Customer Name',
+            fieldType: 'ALPHANUMERIC',
+            required: true,
+            visible: true,
+            masked: false,
+            minLength: 1,
+            maxLength: 100,
+            validationType: 'ALPHANUMERIC',
+          },
+        ],
+        paymentChannels: [
+          {
+            name: 'InstaPay',
+            code: 'INSTAPAY',
+            isEnabled: true,
+            isAvailed: true,
+            chargeTo: 'Payor',
+            fee: '15.00',
+          },
+        ],
+      },
+    },
+  })
+  async getSimplifiedBillerDetails(@Param('billerUuid') billerUuid: string) {
+    return this.upayService.getSimplifiedBillerDetails(billerUuid);
+  }
+
+  /**
+   * UPAY-000 TEST ENDPOINT: Get only simplified reference fields
+   */
+  @Get('test/billers/:billerUuid/references')
+  @ApiOperation({
+    summary: 'Get simplified reference fields (UPAY-000 Testing)',
+    description: 'Returns only the reference fields in simplified format',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Simplified reference fields retrieved successfully',
+  })
+  async getSimplifiedBillerReferences(
+    @Param('billerUuid') billerUuid: string,
+  ) {
+    return this.upayService.getSimplifiedBillerReferences(billerUuid);
   }
 }

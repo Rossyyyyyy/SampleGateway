@@ -1,3 +1,4 @@
+// C:\Users\Roschel\Downloads\inspirewalletgateway\src\modules\upay\upay.service.ts
 import { Injectable, Logger } from '@nestjs/common';
 import {
   generateTransactionReference,
@@ -178,7 +179,7 @@ export class UpayService {
     billerUuid: string,
     requestId?: string,
   ): Promise<UpayBillerUuidStatusResponseDto> {
-    this.logger.log('Getting UPay status for biller UUID: ${billerUuid}');
+    this.logger.log(`Getting UPay status for biller UUID: ${billerUuid}`);
 
     const response = await this.unionbankUpayService.getBillerUuidStatus(
       billerUuid,
@@ -290,6 +291,20 @@ export class UpayService {
       records: response.records,
       record: response.record,
     };
+  }
+
+  /**
+   * UPAY-000: Get simplified biller details
+   */
+  async getSimplifiedBillerDetails(billerUuid: string) {
+    return this.unionbankUpayService.getSimplifiedBillerDetails(billerUuid);
+  }
+
+  /**
+   * UPAY-000: Get simplified reference fields
+   */
+  async getSimplifiedBillerReferences(billerUuid: string) {
+    return this.unionbankUpayService.getSimplifiedBillerReferences(billerUuid);
   }
 
   /**

@@ -1,3 +1,4 @@
+//C:\Users\Roschel\Downloads\inspirewalletgateway\src\modules\upay\dto\upay.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
